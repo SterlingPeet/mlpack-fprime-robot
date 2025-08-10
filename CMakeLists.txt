@@ -7,6 +7,8 @@
 cmake_minimum_required(VERSION 3.13)
 project(MarsRobot C CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 ###
 # F' Core Setup
 # This includes all of the F prime core components, and imports the make-system.
