@@ -9,6 +9,8 @@
 
 #include "Components/RomiHWDriver/RomiHWDriverComponentAc.hpp"
 #include "Components/RomiTypes/RomiTelemetrySerializableAc.hpp"
+#include "Drv/Ports/I2cStatusEnumAc.hpp"
+#include "Fw/Types/BasicTypes.hpp"
 
 namespace ROMI {
 
@@ -100,7 +102,11 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
     // Member variables for component instance scope
     // ----------------------------------------------------------------------
 
+    U8* m_i2cCmdBuff;
+    Fw::Buffer m_i2cCmdBuffer;
+
     U8* m_i2cTelemBuff;
+    Fw::Buffer m_i2cTelemBuffer;
     RomiTelemetry m_i2cTelem;
     Drv::I2cStatus m_lastI2cStatus;
 };

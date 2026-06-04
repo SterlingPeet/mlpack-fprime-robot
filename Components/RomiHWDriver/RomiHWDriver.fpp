@@ -26,6 +26,10 @@ module ROMI {
         @ operator via GDS.
         output port sendButton: [3] Drv.GpioRead
 
+        @ I2C interface to the Romi microcontroller
+        output port i2c: Drv.I2cWriteRead
+
+
         # ----------------------------------------------------------------------
         # Commands
         # ----------------------------------------------------------------------
