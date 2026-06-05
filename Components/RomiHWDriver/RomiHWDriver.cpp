@@ -27,7 +27,7 @@ RomiHWDriver ::~RomiHWDriver() {}
 // ----------------------------------------------------------------------
 
 void RomiHWDriver ::schedIn_handler(FwIndexType portNum, U32 context) {
-    this->m_lastI2cStatus = this->I2cRead_out(0x14, this->m_i2cTelemBuffer);
+    //this->m_lastI2cStatus = this->I2cRead_out(0x14, this->m_i2cTelemBuffer);
 }
 
 Drv::GpioStatus RomiHWDriver ::setLed_handler(FwIndexType portNum, const Fw::Logic& state) {
