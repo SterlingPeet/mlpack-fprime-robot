@@ -27,7 +27,7 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
     //! Destroy RomiHWDriver object
     ~RomiHWDriver();
 
-    PRIVATE :
+    private :
 
         // ----------------------------------------------------------------------
         // Handler implementations for typed input ports
@@ -54,7 +54,7 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
                            const ROMI::MotorCommand& speed  //!< Speed of the left and right motors
                            ) override;
 
-    PRIVATE :
+    private :
 
         // ----------------------------------------------------------------------
         // Handler implementations for commands
@@ -85,7 +85,7 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
                                 Fw::On state          //!< New LED State
                                 ) override;
 
-    PRIVATE :
+    private :
 
         // ----------------------------------------------------------------------
         // Handler implementations for user-defined internal interfaces
