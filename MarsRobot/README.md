@@ -37,3 +37,27 @@ The application binary may then be run independently from the created 'bin' dire
 cd MarsRobot/build-artifacts/<platform>/bin/
 ./MarsRobot -a 127.0.0.1 -p 50000
 ```
+
+
+## This deployment uses F' **core subtopologies** for a modular, reusable architecture:
+
+- **CdhCore**: Command & Data Handling
+  - Command dispatching and event management
+  - Event logging and telemetry collection
+  - Health monitoring system
+  - Fatal error handling
+
+- **ComCcsds**: CCSDS Communication Subsystem
+  - CCSDS protocol implementation
+  - Uplink/downlink data handling
+  - Frame processing and routing
+
+- **FileHandling**: File Transfer & Command Sequencing
+  - File upload and download services
+  - Parameter database management
+  - File system operations
+
+- **DataProducts**: Data Product Management
+  - Data product cataloging
+  - Storage and retrieval capabilities
+  - Product metadata management

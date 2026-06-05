@@ -15,7 +15,8 @@ namespace ROMI {
 
 RomiHWDriver ::RomiHWDriver(const char* const compName) : RomiHWDriverComponentBase(compName) {
     this->m_lastI2cStatus = Drv::I2cStatus::I2C_OPEN_ERR;  // Default to uninitialized, schedIn will get an update
-    this->m_i2cCmdBuff = new U8[RomiTelemetry::SERIALIZED_SIZE + 1];  // Room for writing everything plus a register location
+    this->m_i2cCmdBuff =
+        new U8[RomiTelemetry::SERIALIZED_SIZE + 1];  // Room for writing everything plus a register location
     this->m_i2cTelemBuff = new U8[RomiTelemetry::SERIALIZED_SIZE];
     this->m_i2cTelemBuffer = Fw::Buffer(this->m_i2cTelemBuff, RomiTelemetry::SERIALIZED_SIZE);
 }
@@ -27,7 +28,7 @@ RomiHWDriver ::~RomiHWDriver() {}
 // ----------------------------------------------------------------------
 
 void RomiHWDriver ::schedIn_handler(FwIndexType portNum, U32 context) {
-    //this->m_lastI2cStatus = this->I2cRead_out(0x14, this->m_i2cTelemBuffer);
+    // this->m_lastI2cStatus = this->I2cRead_out(0x14, this->m_i2cTelemBuffer);
 }
 
 Drv::GpioStatus RomiHWDriver ::setLed_handler(FwIndexType portNum, const Fw::Logic& state) {

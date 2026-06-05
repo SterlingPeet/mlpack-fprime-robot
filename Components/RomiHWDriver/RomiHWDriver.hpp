@@ -27,19 +27,17 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
     //! Destroy RomiHWDriver object
     ~RomiHWDriver();
 
-    private :
+  private:
+    // ----------------------------------------------------------------------
+    // Handler implementations for typed input ports
+    // ----------------------------------------------------------------------
 
-        // ----------------------------------------------------------------------
-        // Handler implementations for typed input ports
-        // ----------------------------------------------------------------------
-
-        //! Handler implementation for schedIn
-        //!
-        //! Sched port: Read Romi and emit telemetry
-        void
-        schedIn_handler(FwIndexType portNum,  //!< The port number
-                        U32 context           //!< The call order
-                        ) override;
+    //! Handler implementation for schedIn
+    //!
+    //! Sched port: Read Romi and emit telemetry
+    void schedIn_handler(FwIndexType portNum,  //!< The port number
+                         U32 context           //!< The call order
+                         ) override;
 
     //! Handler implementation for setLed
     //!
@@ -54,20 +52,18 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
                            const ROMI::MotorCommand& speed  //!< Speed of the left and right motors
                            ) override;
 
-    private :
+  private:
+    // ----------------------------------------------------------------------
+    // Handler implementations for commands
+    // ----------------------------------------------------------------------
 
-        // ----------------------------------------------------------------------
-        // Handler implementations for commands
-        // ----------------------------------------------------------------------
-
-        //! Handler implementation for command SET_YELLOW_LED
-        //!
-        //! Set the yellow LED
-        void
-        SET_YELLOW_LED_cmdHandler(FwOpcodeType opCode,  //!< The opcode
-                                  U32 cmdSeq,           //!< The command sequence number
-                                  Fw::On state          //!< New LED State
-                                  ) override;
+    //! Handler implementation for command SET_YELLOW_LED
+    //!
+    //! Set the yellow LED
+    void SET_YELLOW_LED_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                                   U32 cmdSeq,           //!< The command sequence number
+                                   Fw::On state          //!< New LED State
+                                   ) override;
 
     //! Handler implementation for command SET_GREEN_LED
     //!
@@ -85,18 +81,16 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
                                 Fw::On state          //!< New LED State
                                 ) override;
 
-    private :
+  private:
+    // ----------------------------------------------------------------------
+    // Handler implementations for user-defined internal interfaces
+    // ----------------------------------------------------------------------
 
-        // ----------------------------------------------------------------------
-        // Handler implementations for user-defined internal interfaces
-        // ----------------------------------------------------------------------
-
-        //! Handler implementation for I2cCommand
-        //!
-        //! Internal helper for sending I2C command transactions
-        void
-        I2cCommand_internalInterfaceHandler(const Fw::Buffer& cmdBuff  //!< Data to send to I2c Device
-                                            ) override;
+    //! Handler implementation for I2cCommand
+    //!
+    //! Internal helper for sending I2C command transactions
+    void I2cCommand_internalInterfaceHandler(const Fw::Buffer& cmdBuff  //!< Data to send to I2c Device
+                                             ) override;
 
     // ----------------------------------------------------------------------
     // Member variables for component instance scope
