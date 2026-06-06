@@ -26,6 +26,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/CMake/mlpack.cmake")
 # specifically to an RPi 3B+.  Modify the OPENBLAS_TARGET below if not.
 set(OPENBLAS_TARGET "CORTEXA53")
 set(OPENBLAS_BINARY "64")
+set(OPENBLAS_EXTRA_ARGS "NOFORTRAN=1")
 fetch_mlpack(${CMAKE_CROSSCOMPILING})
 include_directories(${MLPACK_INCLUDE_DIRS})
 
