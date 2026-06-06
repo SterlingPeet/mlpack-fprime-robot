@@ -24,13 +24,19 @@ module Components {
         # @ Event issued when the current density is asked for.
         event ReportDensityEvent(density: F64) severity activity high id 1 format "KDE model current density: {}"
 
+        # @ Event issued when telemetry is received.
+        event TelemetryReceivedEvent(info: string size 1024) severity activity high id 2 format "Telemetry received: {}"
+
         # @ The rate group scheduler input
         sync input port run: Svc.Sched
 
+        # @ The input used when a telemetry event is sent.
+        sync input port tlmIn: Fw.Tlm
+
         # @ Leaf size to use when building the tree.
-        param LEAF_SIZE: U64
+        param LEAF_SIZE: U64 default 100
         # @ Maximum number of historical samples to use when building the tree.
-        param MAX_NUM_SAMPLES: U64
+        param MAX_NUM_SAMPLES: U64 default 10000
 
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #

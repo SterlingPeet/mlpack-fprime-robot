@@ -35,6 +35,13 @@ class KDEAnomalyDetector final : public KDEAnomalyDetectorComponentBase {
                      U32 context           //!< The call order
                      ) override;
 
+    //! Handler implementation for tlmIn
+    void tlmIn_handler(FwIndexType portNum,  //!< The port number
+                       FwChanIdType id,      //!< Telemetry Channel ID
+                       Fw::Time& timeTag,    //!< Time Tag
+                       Fw::TlmBuffer& val    //!< Buffer containing serialized telemetry value
+                       ) override;
+
   private:
     // ----------------------------------------------------------------------
     // Handler implementations for commands

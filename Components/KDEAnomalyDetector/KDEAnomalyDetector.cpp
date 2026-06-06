@@ -26,7 +26,11 @@ KDEAnomalyDetector ::~KDEAnomalyDetector() {}
 // ----------------------------------------------------------------------
 
 void KDEAnomalyDetector ::run_handler(FwIndexType portNum, U32 context) {
-    // TODO: grab telemetry and add to matrix
+    // TODO: run anomaly detector
+}
+
+void KDEAnomalyDetector ::tlmIn_handler(FwIndexType portNum, FwChanIdType id, Fw::Time& timeTag, Fw::TlmBuffer& val) {
+    // TODO
 }
 
 // ----------------------------------------------------------------------
