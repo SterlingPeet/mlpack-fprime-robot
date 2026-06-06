@@ -19,7 +19,7 @@ module MarsRobot {
 
   module Default {
     constant QUEUE_SIZE = 10
-    constant STACK_SIZE = 64 * 1024
+    constant STACK_SIZE = 128 * 1024
   }
 
   # ----------------------------------------------------------------------
@@ -50,6 +50,8 @@ module MarsRobot {
   # Queued component instances
   # ----------------------------------------------------------------------
 
+  instance anomalyDetector1: Components.KDEAnomalyDetector base id 0x10005000 \
+    queue size Default.QUEUE_SIZE
 
   # ----------------------------------------------------------------------
   # Passive component instances
