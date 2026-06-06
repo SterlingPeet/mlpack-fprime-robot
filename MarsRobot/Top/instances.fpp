@@ -67,4 +67,6 @@ module MarsRobot {
 
   instance comDriver: Drv.TcpServer base id 0x10014000
 
+  instance tlmSplitter: Components.TlmSplitter base id 0x10006000
+
 }

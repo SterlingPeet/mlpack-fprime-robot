@@ -33,6 +33,7 @@ module MarsRobot {
     instance comDriver
     instance cmdSeq
     instance anomalyDetector1
+    instance tlmSplitter
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -40,7 +41,13 @@ module MarsRobot {
 
     command connections instance CdhCore.cmdDisp
     event connections instance CdhCore.events
-    telemetry connections instance CdhCore.tlmSend
+    telemetry connections instance CdhCore.tlmSend {
+        rateGroup1
+        rateGroup2
+        rateGroup3
+        cmdSeq
+        anomalyDetector1
+    }
     text event connections instance CdhCore.textLogger
     health connections instance CdhCore.$health
     param connections instance FileHandling.prmDb
@@ -130,7 +137,9 @@ module MarsRobot {
     }
 
     connections MarsRobot {
-
+      systemResources.Tlm -> tlmSplitter.TlmRecv
+      tlmSplitter.TlmOutA -> CdhCore.tlmSend.TlmRecv
+      tlmSplitter.TlmOutB -> anomalyDetector1.tlmIn
     }
 
   }
