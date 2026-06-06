@@ -151,7 +151,14 @@ void KDEAnomalyDetector ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     Fw::Time maxTime;
     for (size_t i = 0; i < this->numDims; ++i)
     {
+        if (this->tlmCache[i].size() == 0)
+        {
+          // Skip empty dimensions.
+          continue;
+        }
+
         const Fw::Time& t = this->tlmCache[i].begin()->first;
+
         if (firstMaxMinTime)
         {
             maxMinTime = t;
@@ -182,9 +189,7 @@ void KDEAnomalyDetector ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     }
 
     // Now determine the size of our dataset.
-    std::cout << "now compute numSeconds\n";
     U32 numSeconds = Fw::Time::sub(maxTime, maxMinTime).getSeconds();
-    std::cout << "it is " << numSeconds << "\n";
 
     Fw::ParamValid isValid;
     U64 maxNumSamples = this->paramGet_MAX_NUM_SAMPLES(isValid);
@@ -222,7 +227,7 @@ void KDEAnomalyDetector ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     // Now construct the dataset by iterating over each telemetry channel.
     arma::wall_clock c;
     c.tic();
-    arma::mat dataset(this->numDims, numSeconds);
+    arma::mat dataset(this->numDims, numSeconds, arma::fill::none);
     Fw::Time currentTime = maxMinTime;
     std::array<std::map<Fw::Time, double>::const_iterator,
                this->numDims> tlmIters;
@@ -237,6 +242,13 @@ void KDEAnomalyDetector ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     {
         for (size_t r = 0; r < this->numDims; ++r)
         {
+            if (this->tlmCache[r].size() == 0)
+            {
+                // If we have no telemetry values, consider it to be zero.
+                dataset(r, c) = 0.0;
+                continue;
+            }
+
             // For each telemetry dimension, make sure we are looking at the
             // most recent observation *before* `currentTime`.
             while (tlmIters[r] != this->tlmCache[r].end() &&
@@ -311,13 +323,12 @@ void KDEAnomalyDetector ::REPORT_DENSITY_cmdHandler(FwOpcodeType opCode, U32 cmd
     {
         if (this->tlmCache[d].size() == 0)
         {
-            // TODO: log error... no data!
-            this->cmdResponse_out(opCode, cmdSeq,
-                Fw::CmdResponse::EXECUTION_ERROR);
-            return;
+            point[d] = 0.0;
         }
-
-        point[d] = (--this->tlmCache[d].end())->second;
+        else
+        {
+            point[d] = (--this->tlmCache[d].end())->second;
+        }
     }
 
     // Normalize the point.
