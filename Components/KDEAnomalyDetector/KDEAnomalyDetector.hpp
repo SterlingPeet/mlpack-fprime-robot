@@ -7,7 +7,8 @@
 #ifndef Components_KDEAnomalyDetector_HPP
 #define Components_KDEAnomalyDetector_HPP
 
-#include <mlpack.hpp>
+#include <mlpack/core.hpp>
+#include <mlpack/methods/kde.hpp>
 #include "Components/KDEAnomalyDetector/KDEAnomalyDetectorComponentAc.hpp"
 
 namespace Components {
@@ -58,10 +59,25 @@ class KDEAnomalyDetector final : public KDEAnomalyDetectorComponentBase {
                                    ) override;
 
   private:
-    //! The instantiated data we will build the tree on.
-    arma::mat treeData;
+    constexpr static const size_t numDims = 18;
+
     //! The current version of the tree.
-    mlpack::KDTree<> tree;
+    mlpack::KDE<> kde;
+    //! Means of each feature in the current tree.
+    arma::vec::fixed<numDims> dimMeans;
+    //! Variances of each feature in the current tree.
+    arma::vec::fixed<numDims> dimStddevs;
+
+    //! Number of times the tree has been trained.
+    U64 numResets;
+
+    std::map<FwChanIdType, size_t> dimMap;
+    std::array<size_t, 18> dimTypes;
+
+    // Note: this cache is built on the assumption that telemetry comes in
+    // pretty much once per second!  This will still work if that's not true,
+    // but the cache may grow pretty large.
+    std::vector<std::map<Fw::Time, double>> tlmCache;
 };
 
 }  // namespace Components

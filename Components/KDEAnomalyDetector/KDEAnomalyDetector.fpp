@@ -9,10 +9,12 @@ module Components {
         async command REPORT_DENSITY()
 
         # @ Count the number of times the model has been reset.
-        telemetry ResetCounter: U64
-        # @ The UNIX timestamp of the last time the model was reset.
-        telemetry LastResetTimestamp: U64
+        telemetry RESET_COUNTER: U64
 
+        # @ Number of seconds taken to build the dataset for the kd-tree.
+        telemetry DATASET_BUILD_TIME: F32
+        # @ Number of seconds taken to build the tree.
+        telemetry TREE_BUILD_TIME: F32
         # @ Number of dimensions that the last model was trained on.
         telemetry MODEL_DIMENSIONS: U64
         # @ Number of points that the last model was trained on.
@@ -24,8 +26,8 @@ module Components {
         # @ Event issued when the current density is asked for.
         event ReportDensityEvent(density: F64) severity activity high id 1 format "KDE model current density: {}"
 
-        # @ Event issued when telemetry is received.
-        event TelemetryReceivedEvent(info: string size 1024) severity activity high id 2 format "Telemetry received: {}"
+        # @ Event issued when invalid telemetry is received.
+        event InvalidTelemetryReceivedEvent(info: string size 1024) severity activity high id 2 format "Invalid telemetry received: {}"
 
         # @ The rate group scheduler input
         sync input port run: Svc.Sched
@@ -37,6 +39,10 @@ module Components {
         param LEAF_SIZE: U64 default 100
         # @ Maximum number of historical samples to use when building the tree.
         param MAX_NUM_SAMPLES: U64 default 10000
+        # @ Bandwidth of Gaussian kernel to use.
+        param KERNEL_BW: F32 default 1.0
+        # @ Variance of noise to add to zero dimensions.
+        param ZERO_DIM_NOISE: F32 default 0.001
 
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #
