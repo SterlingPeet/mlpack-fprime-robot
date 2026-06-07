@@ -26,8 +26,9 @@ module ROMI {
         @ operator via GDS.
         output port sendButton: [3] Drv.GpioRead
 
-        @ I2C interface to the Romi microcontroller
-        output port i2c: Drv.I2cWriteRead
+        @ Single I2C writeRead port: one transaction per schedIn writes the full
+        @ 28-byte struct (reg 0) and reads back 28 bytes of telemetry.
+        output port i2cWriteRead: Drv.I2cWriteRead
 
 
         # ----------------------------------------------------------------------
@@ -109,15 +110,6 @@ module ROMI {
 
         @Port to set the value of a parameter
         param set port prmSetOut
-
-        # ----------------------------------------------------------------------
-        # Internal Interfaces (FPP Internal Ports)
-        # ----------------------------------------------------------------------
-
-        @ Internal helper for sending I2C command transactions
-        internal port I2cCommand(
-            cmdBuff: Fw.Buffer  @< Data to send to I2c Device
-        )
 
     }
 }
