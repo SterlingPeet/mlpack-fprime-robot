@@ -1,0 +1,22 @@
+services:
+  build:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: marsrobot-build:latest
+    # Mount the entire project so edits on the host are immediately visible
+    # inside the container without rebuilding the image.
+    volumes:
+    - ..:/project
+    working_dir: /project
+    # Keep stdin open so the container can be used interactively with
+    # `docker compose run build bash` in addition to the default build target.
+    stdin_open: true
+    tty: true
+    # Default command: generate the aarch64 build cache then compile.
+    # Override with `docker compose run build <cmd>` for other targets.
+    command: >
+      bash -c "
+        fprime-util generate aarch64-linux -DCMAKE_SYSROOT=/project/sysroot &&
+        fprime-util build -j$$(nproc)
+      "
