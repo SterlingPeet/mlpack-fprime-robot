@@ -21,3 +21,62 @@ Specific consideration was given to minimizing the amount design work and strivi
 The code running on the Romi's Atmega32u4 is located in the ``arduino_code`` folder.
 For our purposes, we treat is as a black box sub-system that we can control from a Raspberry Pi over I2C.
 Uploading the firmare to the Romi is a straightforward Arduino upload process, even though it requires some libraries from Pololu for the Romi32u4 platform.
+
+## Building for Raspberry Pi 4 (aarch64)
+
+The deployment targets a Raspberry Pi 4 running 64-bit Debian Bookworm (aarch64).
+The recommended build path is a Docker container running Ubuntu 24.04, which
+provides the `aarch64-linux-gnu` cross-compiler without any host-platform setup.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
+- A Pi 4 sysroot synced from the target board (see *Sysroot* below)
+
+### Sysroot
+
+The build links against headers and libraries from the target Pi rather than
+the cross-compiler's bundled copies.  Sync the sysroot once from a running Pi:
+
+```bash
+rsync -avzhe ssh --progress pi@<PI_IP>:/lib      sysroot/
+rsync -avzhe ssh --progress pi@<PI_IP>:/usr/include sysroot/usr/
+rsync -avzhe ssh --progress pi@<PI_IP>:/usr/lib    sysroot/usr/
+```
+
+A pre-synced copy from a Bookworm Pi 4 is kept at `sysroot/` (gitignored).
+
+### Build
+
+```bash
+# Build the Docker image and cross-compile the deployment (one command):
+docker compose -f docker/docker-compose.yml run --rm build
+
+# Or explicitly as:
+docker compose -f docker/docker-compose.yml run --rm build bash -c fprime-util generate && fprime-util build
+
+# Alternatively this sequence allows the last command to be repeated for smaller
+# incremental changes:
+docker compose -f docker/docker-compose.yml run --rm build bash -c fprime-util purge --force
+docker compose -f docker/docker-compose.yml run --rm build bash -c fprime-util generate
+docker compose -f docker/docker-compose.yml run --rm build bash -c fprime-util build
+
+# The binary is produced at:
+#   build-fprime-automatic-Linux/MarsRobot/MarsRobot
+```
+
+### Interactive shell inside the build container
+
+```bash
+docker compose -f docker/docker-compose.yml run --rm build bash
+
+# Inside the container:
+fprime-util generate aarch64-linux -DCMAKE_SYSROOT=/project/sysroot
+fprime-util build -j$(nproc)
+```
+
+### Deploy to Pi
+
+```bash
+scp build-fprime-automatic-Linux/MarsRobot/MarsRobot pi@<PI_IP>:~/
+```
