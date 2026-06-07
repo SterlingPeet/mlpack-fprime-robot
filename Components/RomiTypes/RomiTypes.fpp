@@ -17,9 +17,12 @@ module ROMI {
     RED_LED = 23 @< Red LED state
     MOTOR_CMDS = 24 @< Left motor command value
     MOTOR_CMD_RIGHT = 26 @< Right motor command value
-    PLAY_NOTES = 27 @< Play notes command
-    NOTES = 28 @< Notes to play
+    PLAY_NOTES = 28 @< Play notes command (1 byte)
+    NOTES = 29 @< Notes to play (14 chars)
   }
+
+  @ Romi analog channel readings (6 x U16, registers 6..17)
+  array RomiAnalog = [6] U16
 
   @ Enum to describe the available buttons on the Romi
   enum RomiButton {

@@ -26,8 +26,14 @@ module ROMI {
         @ operator via GDS.
         output port sendButton: [3] Drv.GpioRead
 
-        @ I2C interface to the Romi microcontroller
-        output port i2c: Drv.I2cWriteRead
+        @ I2C write port: flushes the cached command block per schedIn
+        @ ([reg=21, yellow, green, red, L_lo, L_hi, R_lo, R_hi]) and, when a
+        @ note sequence is pending, a separate notes block at reg 28.
+        output port i2cWrite: Drv.I2c
+
+        @ I2C writeRead port: per schedIn writes the telemetry register
+        @ address (reg 0) and reads back the 21-byte telemetry block.
+        output port i2cWriteRead: Drv.I2cWriteRead
 
 
         # ----------------------------------------------------------------------
@@ -49,6 +55,12 @@ module ROMI {
             $state: Fw.On @< New LED State
           ) opcode 2
 
+        @ Play a note sequence on the Romi buzzer.  The string uses the
+        @ PololuBuzzer play() mini-language (e.g. "v10>>g16>>>c16").
+        async command PLAY_NOTES(
+            notes: string size 14 @< Note sequence to play
+          ) opcode 3
+
         # ----------------------------------------------------------------------
         # Telemetry
         # ----------------------------------------------------------------------
@@ -59,6 +71,9 @@ module ROMI {
         @ Battery voltage from the Romi battery pack
         telemetry BatteryVoltage: F32 id 1 \
           format "{.3f} V"
+
+        @ Raw analog channel readings (6 x U16) from the Romi ADC
+        telemetry AnalogChannels: RomiAnalog id 2
 
         # ----------------------------------------------------------------------
         # Events
@@ -109,15 +124,6 @@ module ROMI {
 
         @Port to set the value of a parameter
         param set port prmSetOut
-
-        # ----------------------------------------------------------------------
-        # Internal Interfaces (FPP Internal Ports)
-        # ----------------------------------------------------------------------
-
-        @ Internal helper for sending I2C command transactions
-        internal port I2cCommand(
-            cmdBuff: Fw.Buffer  @< Data to send to I2c Device
-        )
 
     }
 }
