@@ -53,6 +53,20 @@
       "generator": "Ninja",
       "inherits": "fprime-debug-ninja",
       "name": "fprime-ut-ninja"
+    },
+    {
+      "binaryDir": "${sourceDir}/build-fprime-automatic-Linux",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "description": "Cross-compile for Raspberry Pi 4 (aarch64 Bookworm) using MacPorts clang-17",
+      "displayName": "RPi 4 aarch64 Cross-Compile",
+      "environment": {
+        "PATH": "$env{VIRTUAL_ENV}/bin:$penv{PATH}",
+        "VIRTUAL_ENV": "${fileDir}/fprime-venv"
+      },
+      "name": "fprime-rpi4"
     }
   ],
   "version": 4

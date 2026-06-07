@@ -7,6 +7,9 @@ build-fprime-*
 *.template.cpp
 *.template.hpp
 
+# Cross-compile sysroot (large, synced separately from target Pi)
+sysroot/
+
 # Misc
 /venv/
 /fprime-venv/
