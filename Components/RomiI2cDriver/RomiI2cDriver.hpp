@@ -1,10 +1,12 @@
 // ======================================================================
 // \title  RomiI2cDriver.hpp
-// \brief  I2C driver for the Romi 32U4 PololuRPiSlave interface
+// \brief  I2C driver for the Romi 32U4 register-addressed interface
 //
-// Uses write + delay + read instead of the atomic I2C_RDWR ioctl so that
-// the PololuRPiSlave firmware has time to prepare read data between the
-// register-address write and the subsequent data read.
+// Uses write + delay + read as two discrete transactions instead of the
+// atomic I2C_RDWR ioctl: the Raspberry Pi BCM I2C peripheral mishandles the
+// repeated start that I2C_RDWR emits.  The delay gives the Romi firmware time
+// to refresh its shared buffer between the register-address write and the
+// subsequent data read.
 // ======================================================================
 
 #ifndef ROMI_RomiI2cDriver_HPP

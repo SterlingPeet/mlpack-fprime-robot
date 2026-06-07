@@ -11,9 +11,10 @@
 namespace ROMI {
 
 //! Delay in microseconds between writing a register address and reading back data.
-//! The PololuRPiSlave library on the Romi 32U4 requires this gap to prepare
-//! read data after receiving the register-address byte.  The Linux I2C_RDWR
-//! atomic ioctl does not insert this gap, so it must be done manually.
+//! Gives the Romi firmware loop() time to refresh its shared buffer before the
+//! read, and separates the two transactions with a real STOP (the Pi BCM I2C
+//! peripheral mishandles the repeated start the atomic I2C_RDWR ioctl emits).
+//! Tunable: with the vanilla-Wire firmware this can likely drop toward ~50 us.
 constexpr U32 I2C_READ_DELAY_US = 100;
 
 //! Default I2C bus device path for the Romi on a Raspberry Pi (bus 1).

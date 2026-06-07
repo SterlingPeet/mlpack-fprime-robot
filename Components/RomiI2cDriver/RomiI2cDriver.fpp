@@ -2,11 +2,12 @@ module ROMI {
 
   @ Custom I2C driver for the Romi 32U4 microcontroller.
   @
-  @ The PololuRPiSlave library on the Romi 32U4 does not properly support
-  @ the Linux I2C_RDWR ioctl (atomic repeated-start combined write+read).
-  @ This component instead performs a discrete write, waits I2C_READ_DELAY_US
-  @ (see config/RomiCfg.hpp), then reads — matching the behaviour of the
-  @ original cFS romimot_hw driver.
+  @ The Raspberry Pi BCM I2C peripheral mishandles repeated-start (the atomic
+  @ Linux I2C_RDWR combined write+read), so this component never uses it.  A
+  @ telemetry read is instead a discrete write of the register-address byte,
+  @ a wait of I2C_READ_DELAY_US (see config/RomiCfg.hpp), then a separate
+  @ read — two transactions with a real STOP between them.  The Romi firmware
+  @ latches the register offset on the write and streams from it on the read.
   @
   @ The port interface mirrors Drv.LinuxI2cDriver so either driver can be
   @ wired into a topology targeting the Romi I2C bus.
@@ -25,8 +26,8 @@ module ROMI {
     guarded input port read: Drv.I2c
 
     @ Write a register-address byte, wait I2C_READ_DELAY_US, then read data.
-    @ Uses discrete write + read syscalls instead of I2C_RDWR to satisfy the
-    @ PololuRPiSlave timing requirement.
+    @ Uses discrete write + read syscalls (two transactions, real STOP between)
+    @ instead of I2C_RDWR, whose repeated start the Pi BCM I2C mishandles.
     guarded input port writeRead: Drv.I2cWriteRead
 
     # ----------------------------------------------------------------------

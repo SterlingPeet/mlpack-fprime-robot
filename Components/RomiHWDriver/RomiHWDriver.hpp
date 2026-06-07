@@ -2,13 +2,15 @@
 // \title  RomiHWDriver.hpp
 // \brief  Hardware abstraction layer for the Romi 32U4 over I2C
 //
-// On every schedIn tick this component issues ONE I2C writeRead transaction:
-//   write: [reg=0, pad×21, yellow, green, red, L_lo, L_hi, R_lo, R_hi] (29 bytes)
-//   read:  28 bytes — the full PololuRPiSlave telemetry struct
-// The 32U4 sketch unconditionally overwrites the padded (read-only) fields
-// with fresh sensor data before every finalizeWrites(), so writing zeros
-// there is safe.  setMotors and setLed only cache values; hardware I/O is
-// batched into schedIn to keep I2C traffic deterministic at 50 Hz.
+// On every schedIn tick this component issues these I2C transactions
+// against the register-addressed Romi firmware:
+//   1. write:     [reg=21, yellow, green, red, L_lo, L_hi, R_lo, R_hi]
+//   2. write:     [reg=28, playNotes=1, notes×14]      (only when pending)
+//   3. writeRead: write [reg=0], delay, read 21 bytes  (telemetry block)
+// Reads never use a repeated start: the driver writes the register address
+// in one transaction and reads in the next (see RomiI2cDriver).  setMotors,
+// setLed and PLAY_NOTES only cache values; hardware I/O is batched into
+// schedIn to keep I2C traffic deterministic at 50 Hz.
 // ======================================================================
 
 #ifndef ROMI_RomiHWDriver_HPP
@@ -54,25 +56,35 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
 
     void SET_RED_LED_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, Fw::On state) override;
 
+    //! Cache a note sequence; the buzzer write is batched into next schedIn
+    void PLAY_NOTES_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdStringArg& notes) override;
+
     // ----------------------------------------------------------------------
     // Private helpers
     // ----------------------------------------------------------------------
 
-    //! Flush the cached write state then read the full telemetry struct.
-    //! \return true on success, false if either I2C transaction fails.
+    //! Flush the cached command state then read the telemetry block.
+    //! \return true on success, false if any I2C transaction fails.
     bool performI2cCycle(U8 i2cAddr);
 
     // ----------------------------------------------------------------------
     // Static I/O buffers (no heap allocation)
     // ----------------------------------------------------------------------
 
-    //! Write buffer: [reg=0, pad×21, yellow, green, red, L_lo, L_hi, R_lo, R_hi]
-    //! Bytes 1–21 are zero-padded (32U4 ignores writes to its sensor-owned fields).
-    U8 m_writeBuf[29];
-    Fw::Buffer m_writeFwBuf;
+    //! Command write buffer: [reg=21, yellow, green, red, L_lo, L_hi, R_lo, R_hi]
+    U8 m_cmdBuf[8];
+    Fw::Buffer m_cmdFwBuf;
 
-    //! 28-byte receive buffer (registers 0–27 from the PololuRPiSlave struct)
-    U8 m_telemBuf[28];
+    //! Notes write buffer: [reg=28, playNotes=1, notes×14]
+    U8 m_notesBuf[16];
+    Fw::Buffer m_notesFwBuf;
+
+    //! Single-byte register-address buffer used to start a telemetry read (reg 0)
+    U8 m_regBuf[1];
+    Fw::Buffer m_regFwBuf;
+
+    //! 21-byte telemetry receive buffer (registers 0–20)
+    U8 m_telemBuf[21];
     Fw::Buffer m_telemFwBuf;
 
     // ----------------------------------------------------------------------
@@ -84,6 +96,12 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
 
     //! Cached motor commands: [0] = left, [1] = right
     I16 m_motorCache[2];
+
+    //! Pending note sequence flagged by PLAY_NOTES, flushed on next schedIn
+    bool m_playNotesPending;
+
+    //! Cached note sequence (NUL-padded) written to the Romi buzzer registers
+    char m_notes[14];
 
     // ----------------------------------------------------------------------
     // Change-detection state

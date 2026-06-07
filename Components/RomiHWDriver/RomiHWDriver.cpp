@@ -16,30 +16,36 @@ namespace ROMI {
 // Wire-format constants
 // -------------------------------------------------------------------------
 
-// The write buffer covers the full 28-byte PololuRPiSlave struct plus one
-// leading register-address byte.  Writing zeros to bytes 1-21 (the sensor-
-// owned fields) is safe: the 32U4 loop unconditionally overwrites them with
-// fresh readings before every finalizeWrites().
-static constexpr FwSizeType WRITE_BUF_LEN = 29;  // 1 reg-addr + 28 struct bytes
-static constexpr FwSizeType TELEM_BUF_LEN = 28;
+// Register addresses in the Romi firmware register map (byte offsets).
+static constexpr U8 REG_TELEM = 0;       // first telemetry register (read)
+static constexpr U8 REG_LED_MOTOR = 21;  // first writable command register
+static constexpr U8 REG_NOTES = 28;      // playNotes flag, then notes[14]
 
-// Byte offsets within m_writeBuf for the Pi-writable fields.
-// Formula: struct_offset + 1  (the +1 accounts for the leading reg-addr byte).
-static constexpr FwSizeType WOFF_YELLOW = 22;   // struct offset 21
-static constexpr FwSizeType WOFF_GREEN = 23;    // struct offset 22
-static constexpr FwSizeType WOFF_RED = 24;      // struct offset 23
-static constexpr FwSizeType WOFF_LMOT_LO = 25;  // struct offset 24 (leftMotor lo)
-static constexpr FwSizeType WOFF_LMOT_HI = 26;  // struct offset 25 (leftMotor hi)
-static constexpr FwSizeType WOFF_RMOT_LO = 27;  // struct offset 26 (rightMotor lo)
-static constexpr FwSizeType WOFF_RMOT_HI = 28;  // struct offset 27 (rightMotor hi)
+// Sizes of the static I/O buffers.
+static constexpr FwSizeType CMD_BUF_LEN = 8;     // reg + 3 LED + 4 motor bytes
+static constexpr FwSizeType NOTES_BUF_LEN = 16;  // reg + playNotes + 14 notes
+static constexpr FwSizeType TELEM_BUF_LEN = 21;  // registers 0..20
 
-// Byte offsets in the received telemetry buffer (struct offsets, 0-based).
+// Byte offsets within m_cmdBuf.
+static constexpr FwSizeType COFF_REG = 0;       // = REG_LED_MOTOR
+static constexpr FwSizeType COFF_YELLOW = 1;    // reg 21
+static constexpr FwSizeType COFF_GREEN = 2;     // reg 22
+static constexpr FwSizeType COFF_RED = 3;       // reg 23
+static constexpr FwSizeType COFF_LMOT_LO = 4;   // reg 24 (leftMotor lo)
+static constexpr FwSizeType COFF_LMOT_HI = 5;   // reg 25 (leftMotor hi)
+static constexpr FwSizeType COFF_RMOT_LO = 6;   // reg 26 (rightMotor lo)
+static constexpr FwSizeType COFF_RMOT_HI = 7;   // reg 27 (rightMotor hi)
+
+// Byte offsets in the received telemetry buffer (register == offset).
 static constexpr FwSizeType OFF_LEFT_ENC = 0;
 static constexpr FwSizeType OFF_RIGHT_ENC = 2;
 static constexpr FwSizeType OFF_BATT_MV = 4;
+static constexpr FwSizeType OFF_ANALOG = 6;  // 6 x U16 -> offsets 6,8,10,12,14,16
 static constexpr FwSizeType OFF_BUTTON_A = 18;
 static constexpr FwSizeType OFF_BUTTON_B = 19;
 static constexpr FwSizeType OFF_BUTTON_C = 20;
+
+static constexpr FwSizeType ANALOG_COUNT = 6;
 
 // -------------------------------------------------------------------------
 // Little-endian read helpers
@@ -57,12 +63,22 @@ static U16 readU16LE(const U8* buf, FwSizeType off) {
 // Construction and destruction
 // -------------------------------------------------------------------------
 
-RomiHWDriver::RomiHWDriver(const char* const compName) : RomiHWDriverComponentBase(compName) {
-    // Write buffer: byte 0 = register address 0; bytes 1-21 = zero padding
-    // (sensor-owned fields); bytes 22-28 = Pi-owned output fields.
-    m_writeBuf[0] = 0;
-    std::memset(m_writeBuf + 1, 0, WRITE_BUF_LEN - 1);
-    m_writeFwBuf = Fw::Buffer(m_writeBuf, WRITE_BUF_LEN);
+RomiHWDriver::RomiHWDriver(const char* const compName)
+    : RomiHWDriverComponentBase(compName), m_playNotesPending(false) {
+    // Command write buffer: byte 0 = register 21, bytes 1-7 = LED + motor state.
+    std::memset(m_cmdBuf, 0, CMD_BUF_LEN);
+    m_cmdBuf[COFF_REG] = REG_LED_MOTOR;
+    m_cmdFwBuf = Fw::Buffer(m_cmdBuf, CMD_BUF_LEN);
+
+    // Notes write buffer: byte 0 = register 28, byte 1 = playNotes flag.
+    std::memset(m_notesBuf, 0, NOTES_BUF_LEN);
+    m_notesBuf[0] = REG_NOTES;
+    m_notesBuf[1] = 1;
+    m_notesFwBuf = Fw::Buffer(m_notesBuf, NOTES_BUF_LEN);
+
+    // Register-address buffer for telemetry reads (always register 0).
+    m_regBuf[0] = REG_TELEM;
+    m_regFwBuf = Fw::Buffer(m_regBuf, sizeof(m_regBuf));
 
     // Telemetry receive buffer.
     std::memset(m_telemBuf, 0, TELEM_BUF_LEN);
@@ -72,6 +88,7 @@ RomiHWDriver::RomiHWDriver(const char* const compName) : RomiHWDriverComponentBa
     std::memset(m_ledCache, 0, sizeof(m_ledCache));
     m_motorCache[0] = 0;
     m_motorCache[1] = 0;
+    std::memset(m_notes, 0, sizeof(m_notes));
 
     // Initialise to 0 so the first read triggers change notifications.
     std::memset(m_lastButtonState, 0, sizeof(m_lastButtonState));
@@ -80,24 +97,36 @@ RomiHWDriver::RomiHWDriver(const char* const compName) : RomiHWDriverComponentBa
 RomiHWDriver::~RomiHWDriver() {}
 
 // -------------------------------------------------------------------------
-// Private helper: single I2C write+read cycle
+// Private helper: flush command writes, then read telemetry
 // -------------------------------------------------------------------------
 
 bool RomiHWDriver::performI2cCycle(U8 i2cAddr) {
-    // Pack the cached output state into the write buffer at the Pi-writable
-    // offsets.  Bytes 1-21 remain zero; the 32U4 overwrites those fields with
-    // fresh sensor readings before finalizeWrites(), so they are never stale.
-    m_writeBuf[WOFF_YELLOW] = m_ledCache[0];
-    m_writeBuf[WOFF_GREEN] = m_ledCache[1];
-    m_writeBuf[WOFF_RED] = m_ledCache[2];
-    m_writeBuf[WOFF_LMOT_LO] = static_cast<U8>(m_motorCache[0] & 0xFF);
-    m_writeBuf[WOFF_LMOT_HI] = static_cast<U8>((m_motorCache[0] >> 8) & 0xFF);
-    m_writeBuf[WOFF_RMOT_LO] = static_cast<U8>(m_motorCache[1] & 0xFF);
-    m_writeBuf[WOFF_RMOT_HI] = static_cast<U8>((m_motorCache[1] >> 8) & 0xFF);
+    // 1. Pack and flush the LED + motor command block (write to register 21).
+    m_cmdBuf[COFF_YELLOW] = m_ledCache[0];
+    m_cmdBuf[COFF_GREEN] = m_ledCache[1];
+    m_cmdBuf[COFF_RED] = m_ledCache[2];
+    m_cmdBuf[COFF_LMOT_LO] = static_cast<U8>(m_motorCache[0] & 0xFF);
+    m_cmdBuf[COFF_LMOT_HI] = static_cast<U8>((m_motorCache[0] >> 8) & 0xFF);
+    m_cmdBuf[COFF_RMOT_LO] = static_cast<U8>(m_motorCache[1] & 0xFF);
+    m_cmdBuf[COFF_RMOT_HI] = static_cast<U8>((m_motorCache[1] >> 8) & 0xFF);
 
-    // Single transaction: write 29 bytes starting at reg 0, sleep 100 µs,
-    // then read back the 28-byte telemetry struct.
-    const Drv::I2cStatus s = this->i2cWriteRead_out(0, i2cAddr, m_writeFwBuf, m_telemFwBuf);
+    if (this->i2cWrite_out(0, i2cAddr, m_cmdFwBuf) != Drv::I2cStatus::I2C_OK) {
+        return false;
+    }
+
+    // 2. Flush a pending note sequence as a separate write to register 28.
+    if (m_playNotesPending) {
+        std::memcpy(m_notesBuf + 2, m_notes, sizeof(m_notes));
+        const Drv::I2cStatus ns = this->i2cWrite_out(0, i2cAddr, m_notesFwBuf);
+        if (ns == Drv::I2cStatus::I2C_OK) {
+            m_playNotesPending = false;
+        }
+        // A failed notes write leaves the request pending for the next cycle.
+    }
+
+    // 3. Read the telemetry block: write register address 0, delay, read 21
+    //    bytes.  The delay and the discrete write/read live in RomiI2cDriver.
+    const Drv::I2cStatus s = this->i2cWriteRead_out(0, i2cAddr, m_regFwBuf, m_telemFwBuf);
     return (s == Drv::I2cStatus::I2C_OK);
 }
 
@@ -121,8 +150,15 @@ void RomiHWDriver::schedIn_handler(FwIndexType portNum, U32 context) {
     const U16 battMv = readU16LE(m_telemBuf, OFF_BATT_MV);
     const F32 battV = static_cast<F32>(battMv) / 1000.0f;
 
+    // Parse analog channels.
+    ROMI::RomiAnalog analog;
+    for (FwSizeType i = 0; i < ANALOG_COUNT; ++i) {
+        analog[i] = readU16LE(m_telemBuf, OFF_ANALOG + (2 * i));
+    }
+
     // Emit telemetry channels.
     this->tlmWrite_BatteryVoltage(battV);
+    this->tlmWrite_AnalogChannels(analog);
     this->tlmWrite_i2cAddress(i2cAddr);
 
     // Push encoder values if the downstream port is wired.
@@ -191,6 +227,22 @@ void RomiHWDriver::SET_GREEN_LED_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, Fw:
 
 void RomiHWDriver::SET_RED_LED_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, Fw::On state) {
     m_ledCache[2] = (state == Fw::On::ON) ? 1 : 0;
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+// -------------------------------------------------------------------------
+// PLAY_NOTES command handler
+// -------------------------------------------------------------------------
+
+void RomiHWDriver::PLAY_NOTES_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdStringArg& notes) {
+    // Copy up to 14 chars (NUL-padded) into the cached note buffer; the
+    // write is batched into the next schedIn alongside other I2C traffic.
+    std::memset(m_notes, 0, sizeof(m_notes));
+    const char* src = notes.toChar();
+    for (FwSizeType i = 0; i < sizeof(m_notes) && src[i] != '\0'; ++i) {
+        m_notes[i] = src[i];
+    }
+    m_playNotesPending = true;
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 

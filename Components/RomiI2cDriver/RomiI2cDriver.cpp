@@ -1,6 +1,6 @@
 // ======================================================================
 // \title  RomiI2cDriver.cpp
-// \brief  I2C driver for the Romi 32U4 PololuRPiSlave interface
+// \brief  I2C driver for the Romi 32U4 register-addressed interface
 // ======================================================================
 
 #include "Components/RomiI2cDriver/RomiI2cDriver.hpp"
@@ -101,9 +101,9 @@ Drv::I2cStatus RomiI2cDriver::writeRead_handler(FwIndexType portNum,
         return Drv::I2cStatus::I2C_WRITE_ERR;
     }
 
-    // Step 2: wait for the PololuRPiSlave firmware to prepare read data.
-    // The atomic I2C_RDWR ioctl does not insert this gap and causes the
-    // 32U4 to return stale or garbled data.
+    // Step 2: wait for the Romi firmware loop() to refresh its shared buffer
+    // before we read it.  This also separates the two transactions with a real
+    // STOP, avoiding the repeated start that the Pi BCM I2C mishandles.
     ::usleep(ROMI::I2C_READ_DELAY_US);
 
     // Step 3: read the response.
