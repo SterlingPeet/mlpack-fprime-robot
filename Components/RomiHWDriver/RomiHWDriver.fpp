@@ -15,6 +15,9 @@ module ROMI {
         @ Set the state of an LED
         sync input port setLed: [3] Drv.GpioWrite
 
+        @ Schedule notes to be played
+        async input port playNotes: PlayNotes
+
         @ Direct report of the motor encoders
         @ This output is optional and telemetry of the raw encoder values
         @ will be reported either way

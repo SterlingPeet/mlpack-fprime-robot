@@ -10,4 +10,6 @@ module ROMI {
     encoders: MotorEncoders @< Encoder values for the left and right motors
   )
 
+  @ Port to play notes
+  port PlayNotes($notes: string size 14)
 }

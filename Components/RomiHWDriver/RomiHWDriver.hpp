@@ -46,6 +46,9 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
     //! Cache motor command; hardware write batched in next schedIn
     void setMotors_handler(FwIndexType portNum, const ROMI::MotorCommand& speed) override;
 
+    //! Queue up notes to be played.
+    void playNotes_handler(FwIndexType portNum, const Fw::StringBase& notes) override;
+
     // ----------------------------------------------------------------------
     // Command handler implementations
     // ----------------------------------------------------------------------
@@ -70,6 +73,9 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
     //! Flush the cached command state then read the telemetry block.
     //! \return true on success, false if any I2C transaction fails.
     bool performI2cCycle(U8 i2cAddr);
+
+    //! Cache notes to be played.
+    void cacheNotes(const char* src);
 
     // ----------------------------------------------------------------------
     // Static I/O buffers (no heap allocation)
