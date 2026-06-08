@@ -51,6 +51,9 @@ module ROMI {
     @ Reset the accumulated left and right odometry counters to zero
     async command RESET_ODOMETRY opcode 2
 
+    @ Run a full sweep of motor speeds for 5 seconds each.  Motors are set in reversed directions.  Total test will take 3000 seconds (50 minutes).
+    async command SPIN_MOTOR_SWEEP opcode 3
+
     # ----------------------------------------------------------------------
     # Telemetry
     # ----------------------------------------------------------------------
@@ -98,6 +101,12 @@ module ROMI {
       severity activity high \
       id 0x01 \
       format "Odometry reset to zero"
+
+    @ Emitted when a spinning motor sweep is started.
+    event SpinMotorSweep \
+      severity activity high \
+      id 0x02 \
+      format "Starting spinning motor sweep"
 
     # ----------------------------------------------------------------------
     # Standard AC Ports

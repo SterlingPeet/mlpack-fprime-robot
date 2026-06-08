@@ -74,6 +74,14 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
                                    U32 cmdSeq            //!< The command sequence number
                                    ) override;
 
+    //! Handler implementation for command SPIN_MOTOR_SWEEP
+    //!
+    //! Start a sweep of motors controlled in a pattern that will make the robot
+    //! spin.  Any current sweep is reset.
+    void SPIN_MOTOR_SWEEP_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                                     U32 cmdSeq            //!< The command sequence number
+                                     ) override;
+
     // ----------------------------------------------------------------------
     // Private helpers
     // ----------------------------------------------------------------------
@@ -115,6 +123,15 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
 
     //! Time of last odometry reading.
     Fw::Time m_lastOdoTime;
+
+    //! Whether we are performing a spinning motor sweep right now.
+    bool m_spinMotorSweep;
+    //! Current target speed of left wheel for spinning motor sweep.
+    I16 m_sweepLeftSpeed;
+    //! Current target speed of right wheel for spinning motor sweep.
+    I16 m_sweepRightSpeed;
+    //! Last time that the sweep speed was changed.
+    Fw::Time m_lastSweepUpdateTime;
 };
 
 }  // namespace ROMI

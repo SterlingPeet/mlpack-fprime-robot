@@ -21,7 +21,14 @@ MotorCntrlManager::MotorCntrlManager(const char* const compName)
       m_rightDelta(0),
       m_cmdLeft(0),
       m_cmdRight(0),
-      m_motorsEnabled(false) {}
+      m_motorsEnabled(false),
+      m_lastLeftOdo(0),
+      m_lastRightOdo(0),
+      m_lastOdoTime(getTime()),
+      m_spinMotorSweep(false),
+      m_sweepLeftSpeed(0),
+      m_sweepRightSpeed(0),
+      m_lastSweepUpdateTime(getTime()) {}
 
 MotorCntrlManager::~MotorCntrlManager() {}
 
@@ -40,9 +47,17 @@ I16 MotorCntrlManager::computeDelta(I16 current, I16 previous) {
 // -------------------------------------------------------------------------
 
 void MotorCntrlManager::schedIn_handler(FwIndexType portNum, U32 context) {
+    // Override the current commanded speed if we are doing a sweep.
+    if (m_spinMotorSweep)
+    {
+        m_cmdLeft = m_sweepLeftSpeed;
+        m_cmdRight = m_sweepRightSpeed;
+        m_motorsEnabled = true;
+    }
+
     // Compute the effective motor command: zero when motors are disabled.
-    const I16 cmdLeft = m_motorsEnabled ? m_cmdLeft : static_cast<I16>(0);
-    const I16 cmdRight = m_motorsEnabled ? m_cmdRight : static_cast<I16>(0);
+    I16 cmdLeft = m_motorsEnabled ? m_cmdLeft : static_cast<I16>(0);
+    I16 cmdRight = m_motorsEnabled ? m_cmdRight : static_cast<I16>(0);
 
     // Apply motor command to RomiHWDriver every cycle so that disabling
     // motors actively drives the command to zero rather than just stopping
@@ -58,6 +73,38 @@ void MotorCntrlManager::schedIn_handler(FwIndexType portNum, U32 context) {
         this->sendEncoderDeltas_out(0, deltas);
     }
 
+    // Update state of sweep if needed.
+    if (m_spinMotorSweep && m_lastSweepUpdateTime.getTimeBase() != 0)
+    {
+        Fw::Time currentTime = getTime();
+        Fw::Time timeDiffObj = Fw::Time::sub(currentTime,
+            m_lastSweepUpdateTime);
+        const F32 timeDiff = timeDiffObj.getSeconds() +
+            timeDiffObj.getUSeconds() / 1000000.0f;
+        if (timeDiff > 5.0 /* seconds */)
+        {
+            --m_sweepLeftSpeed;
+            ++m_sweepRightSpeed;
+            m_lastSweepUpdateTime = currentTime;
+
+            // Are we done sweeping?
+            if (m_sweepLeftSpeed < -300)
+            {
+                m_sweepLeftSpeed = 0;
+                m_sweepRightSpeed = 0;
+                m_spinMotorSweep = false;
+                m_motorsEnabled = false;
+                m_cmdLeft = 0;
+                m_cmdRight = 0;
+            }
+        }
+    }
+    else if (m_lastSweepUpdateTime.getTimeBase() == 0)
+    {
+      // Last sweep update time is not initialized, so do that now.
+      m_lastSweepUpdateTime = getTime();
+    }
+
     // Emit telemetry channels.
     this->tlmWrite_LeftOdometry(m_leftOdo);
     this->tlmWrite_RightOdometry(m_rightOdo);
@@ -69,7 +116,16 @@ void MotorCntrlManager::schedIn_handler(FwIndexType portNum, U32 context) {
 void MotorCntrlManager::schedInSlow_handler(FwIndexType portNum, U32 context) {
     // Compute the actual speed we are going.
     Fw::Time currentTime = getTime();
-    const F64 timeDiff = (currentTime - m_lastOdoTime);
+    if (m_lastOdoTime.getTimeBase() == 0)
+    {
+      // Skip this calculation, the last time wasn't initialized.
+      m_lastOdoTime = currentTime;
+      return;
+    }
+
+    Fw::Time timeDiffObj = Fw::Time::sub(currentTime, m_lastOdoTime);
+    const F32 timeDiff = timeDiffObj.getSeconds() +
+        timeDiffObj.getUSeconds() / 1000000.0f;
     const F32 leftVelocity = (m_leftOdo - m_lastLeftOdo) / timeDiff;
     const F32 rightVelocity = (m_rightOdo - m_lastRightOdo) / timeDiff;
 
@@ -146,6 +202,16 @@ void MotorCntrlManager::RESET_ODOMETRY_cmdHandler(FwOpcodeType opCode, U32 cmdSe
     m_leftOdo = 0;
     m_rightOdo = 0;
     this->log_ACTIVITY_HI_OdometryReset();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void MotorCntrlManager::SPIN_MOTOR_SWEEP_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    m_spinMotorSweep = true;
+    m_motorsEnabled = true;
+    m_sweepLeftSpeed = 300;
+    m_sweepRightSpeed = -300;
+
+    this->log_ACTIVITY_HI_SpinMotorSweep();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
