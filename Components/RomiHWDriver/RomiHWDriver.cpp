@@ -237,18 +237,25 @@ void RomiHWDriver::SET_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, I16 le
 }
 
 // -------------------------------------------------------------------------
-// PLAY_NOTES command handler
+// PLAY_NOTES and PlayNotes command handlers
 // -------------------------------------------------------------------------
 
-void RomiHWDriver::PLAY_NOTES_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdStringArg& notes) {
+void RomiHWDriver::cacheNotes(const char* src) {
     // Copy up to 14 chars (NUL-padded) into the cached note buffer; the
     // write is batched into the next schedIn alongside other I2C traffic.
     std::memset(m_notes, 0, sizeof(m_notes));
-    const char* src = notes.toChar();
     for (FwSizeType i = 0; i < sizeof(m_notes) && src[i] != '\0'; ++i) {
         m_notes[i] = src[i];
     }
     m_playNotesPending = true;
+}
+
+void RomiHWDriver::playNotes_handler(FwIndexType portNum, const Fw::StringBase& notes) {
+    this->cacheNotes(notes.toChar());  // flushed to the buzzer next schedIn
+}
+
+void RomiHWDriver::PLAY_NOTES_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdStringArg& notes) {
+    this->cacheNotes(notes.toChar());
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 

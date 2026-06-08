@@ -13,7 +13,8 @@ namespace Components {
 // Component construction and destruction
 // ----------------------------------------------------------------------
 
-KDEAnomalyDetector ::KDEAnomalyDetector(const char* const compName) : KDEAnomalyDetectorComponentBase(compName) {
+KDEAnomalyDetector ::KDEAnomalyDetector(const char* const compName)
+    : KDEAnomalyDetectorComponentBase(compName), m_anomalySamples(0) {
     // Initialize mapping from telemetry IDs to dimensions.
 
     // Svc::SystemResources
@@ -112,7 +113,54 @@ KDEAnomalyDetector ::~KDEAnomalyDetector() {}
 // ----------------------------------------------------------------------
 
 void KDEAnomalyDetector ::run_handler(FwIndexType portNum, U32 context) {
-    // TODO: run anomaly detector
+    // Ensure that a model is trained.
+    if (!this->kde.IsTrained()) {
+        return;
+    }
+
+    // Construct the most recent values of the telemetry.
+    arma::vec point(this->numDims);
+    for (size_t d = 0; d < this->numDims; ++d) {
+        if (this->tlmCache[d].size() == 0) {
+            point[d] = 0.0;
+        } else {
+            point[d] = (--this->tlmCache[d].end())->second;
+        }
+    }
+
+    // Normalize the point.
+    point -= this->dimMeans;
+    point /= this->dimStddevs;
+
+    // Get the result.
+    arma::vec estimate;
+    this->kde.Evaluate(point, estimate);
+    if (estimate.n_elem != 1) {
+        // TODO: throw some kind of error
+        return;
+    }
+    this->tlmWrite_CURRENT_DENSITY(F64(estimate[0]));
+
+    Fw::ParamValid isValid;
+    F32 threshold = this->paramGet_ANOMALY_THRESHOLD(isValid);
+    if (isValid == Fw::ParamValid::INVALID || isValid == Fw::ParamValid::UNINIT) {
+        threshold = 1e-6;
+    }
+
+    U64 samplesBeforeTrigger = this->paramGet_ANOMALY_SAMPLES_BEFORE_ALARM(isValid);
+    if (isValid == Fw::ParamValid::INVALID || isValid == Fw::ParamValid::UNINIT) {
+        samplesBeforeTrigger = 5;
+    }
+
+    if (estimate[0] < threshold) {
+        ++m_anomalySamples;
+        if (m_anomalySamples >= samplesBeforeTrigger && this->isConnected_playNotes_OutputPort(0)) {
+            // Send a command to play a sound.
+            this->playNotes_out(0, Fw::String("v12 l16 o5 c e g >c8"));
+        }
+    } else {
+        m_anomalySamples = 0;
+    }
 }
 
 void KDEAnomalyDetector ::tlmIn_handler(FwIndexType portNum, FwChanIdType id, Fw::Time& timeTag, Fw::TlmBuffer& val) {

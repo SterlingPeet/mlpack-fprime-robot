@@ -15,8 +15,8 @@ register_fprime_library(
         "${CMAKE_CURRENT_LIST_DIR}/KDEAnomalyDetector.fpp"
     SOURCES
         "${CMAKE_CURRENT_LIST_DIR}/KDEAnomalyDetector.cpp"
-#   DEPENDS
-#       MyPackage_MyOtherModule
+    DEPENDS
+        Components_RomiHWDriver
 )
 
 ### Unit Tests ###

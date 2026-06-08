@@ -1,5 +1,5 @@
 module Components {
-    @ Telemtry anomaly detector using mlpack's KDE (kernel density estimation) implementation.
+    @ Telemetry anomaly detector using mlpack's KDE (kernel density estimation) implementation.
     active component KDEAnomalyDetector {
 
         # Command for resetting the KDE model.
@@ -19,6 +19,8 @@ module Components {
         telemetry MODEL_DIMENSIONS: U64
         # @ Number of points that the last model was trained on.
         telemetry MODEL_POINTS: U64
+        # @ Current density reading.  -1 if no model is trained.
+        telemetry CURRENT_DENSITY: F64
 
         # @ Event issued on model reset.
         event ResetEvent() severity activity high id 0 format "KDE model reset"
@@ -35,6 +37,9 @@ module Components {
         # @ The input used when a telemetry event is sent.
         sync input port tlmIn: Fw.Tlm
 
+        # @ Output port to send notes to the RomiHWDriver.
+        output port playNotes: ROMI.PlayNotes
+
         # @ Leaf size to use when building the tree.
         param LEAF_SIZE: U64 default 100
         # @ Maximum number of historical samples to use when building the tree.
@@ -43,6 +48,10 @@ module Components {
         param KERNEL_BW: F32 default 1.0
         # @ Variance of noise to add to zero dimensions.
         param ZERO_DIM_NOISE: F32 default 0.001
+        # @ Threshold for anomaly detection.
+        param ANOMALY_THRESHOLD: F32 default 1e-6
+        # @ Number of samples we need to detect an anomaly to really flag it.
+        param ANOMALY_SAMPLES_BEFORE_ALARM: U64 default 5
 
         ###############################################################################
         # Standard AC Ports: Required for Channels, Events, Commands, and Parameters  #

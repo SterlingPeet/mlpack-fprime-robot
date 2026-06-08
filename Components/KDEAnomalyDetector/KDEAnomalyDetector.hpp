@@ -78,6 +78,9 @@ class KDEAnomalyDetector final : public KDEAnomalyDetectorComponentBase {
     // pretty much once per second!  This will still work if that's not true,
     // but the cache may grow pretty large.
     std::vector<std::map<Fw::Time, double>> tlmCache;
+
+    //! Number of consecutive anomalies we have seen.
+    U64 m_anomalySamples;
 };
 
 }  // namespace Components

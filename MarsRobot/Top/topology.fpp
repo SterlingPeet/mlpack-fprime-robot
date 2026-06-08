@@ -153,6 +153,7 @@ module MarsRobot {
       systemResources.Tlm -> tlmSplitter.TlmRecv
       tlmSplitter.TlmOutA -> CdhCore.tlmSend.TlmRecv
       tlmSplitter.TlmOutB -> anomalyDetector1.tlmIn
+      anomalyDetector1.playNotes -> romiHwDriver1.playNotes
     }
 
     connections Romi {
