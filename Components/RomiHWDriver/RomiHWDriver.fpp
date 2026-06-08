@@ -61,6 +61,13 @@ module ROMI {
             notes: string size 14 @< Note sequence to play
           ) opcode 3
 
+        @ Set the left and right wheel velocities (Romi range -300..300;
+        @ out-of-range values are ignored by the firmware).
+        async command SET_MOTORS(
+            left: I16  @< Left wheel velocity
+            right: I16 @< Right wheel velocity
+          ) opcode 4
+
         # ----------------------------------------------------------------------
         # Telemetry
         # ----------------------------------------------------------------------

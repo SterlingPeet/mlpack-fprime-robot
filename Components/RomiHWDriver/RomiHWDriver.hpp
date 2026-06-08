@@ -56,6 +56,10 @@ class RomiHWDriver : public RomiHWDriverComponentBase {
 
     void SET_RED_LED_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, Fw::On state) override;
 
+    //! Cache left/right motor velocities; flushed to hardware in next schedIn
+    void SET_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, I16 left, I16
+ right) override;
+
     //! Cache a note sequence; the buzzer write is batched into next schedIn
     void PLAY_NOTES_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, const Fw::CmdStringArg& notes) override;
 
