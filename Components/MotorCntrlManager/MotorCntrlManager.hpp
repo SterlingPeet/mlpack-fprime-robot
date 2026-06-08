@@ -48,9 +48,28 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
     // Command handler implementations
     // ----------------------------------------------------------------------
 
-    void ENABLE_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) override;
-    void DISABLE_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) override;
-    void RESET_ODOMETRY_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) override;
+    //! Handler implementation for command ENABLE_MOTORS
+    //!
+    //! Enable the drive motors (motors are disabled at startup)
+    void ENABLE_MOTORS_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                                  U32 cmdSeq,           //!< The command sequence number
+                                  I16 left,             //!< Left wheel velocity
+                                  I16 right             //!< Right wheel velocity
+                                  ) override;
+
+    //! Handler implementation for command DISABLE_MOTORS
+    //!
+    //! Disable the drive motors and zero the motor command immediately
+    void DISABLE_MOTORS_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                                   U32 cmdSeq            //!< The command sequence number
+                                   ) override;
+
+    //! Handler implementation for command RESET_ODOMETRY
+    //!
+    //! Reset the accumulated left and right odometry counters to zero
+    void RESET_ODOMETRY_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                                   U32 cmdSeq            //!< The command sequence number
+                                   ) override;
 
     // ----------------------------------------------------------------------
     // Private helpers
