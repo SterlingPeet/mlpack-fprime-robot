@@ -20,6 +20,9 @@ module ROMI {
     @ Sched port driven by rateGroup4 at 50 Hz
     async input port schedIn: Svc.Sched
 
+    @ Sched port driven by rateGroup1 at 1 Hz
+    async input port schedInSlow: Svc.Sched
+
     @ Encoder values pushed by RomiHWDriver.sendEncoders each I2C cycle
     async input port receiveEncoders: MotorPairEncoders
 
@@ -66,6 +69,18 @@ module ROMI {
 
     @ Right encoder delta from the most recent receiveEncoders call
     telemetry RightDelta: I16 id 4
+
+    @ Computed velocity of left wheel based on encoder counts
+    telemetry LeftVelocity: F32 id 5
+
+    @ Computed velocity of right wheel based on encoder counts
+    telemetry RightVelocity: F32 id 6
+
+    @ Stored speed being sent to left wheel
+    telemetry LeftSpeed: I16 id 7
+
+    @ Stored speed being sent to right wheel
+    telemetry RightSpeed: I16 id 8
 
     # ----------------------------------------------------------------------
     # Events
