@@ -65,6 +65,11 @@ module MarsRobot {
     stack size Default.STACK_SIZE \
     priority 46
 
+  instance motorCntrlManager1: ROMI.MotorCntrlManager base id 0x1000a000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 47
+
   # ----------------------------------------------------------------------
   # Passive component instances
   # ----------------------------------------------------------------------

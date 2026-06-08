@@ -37,7 +37,10 @@ module ROMI {
     # ----------------------------------------------------------------------
 
     @ Enable the drive motors (motors are disabled at startup)
-    async command ENABLE_MOTORS opcode 0
+    async command ENABLE_MOTORS(
+        left: I16  @< Left wheel velocity
+        right: I16 @< Right wheel velocity
+      ) opcode 0
 
     @ Disable the drive motors and zero the motor command immediately
     async command DISABLE_MOTORS opcode 1

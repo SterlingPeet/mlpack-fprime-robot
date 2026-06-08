@@ -38,6 +38,7 @@ module MarsRobot {
     instance tlmSplitter
     instance romiHwDriver1
     instance romiI2cDriver
+    instance motorCntrlManager1
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -53,6 +54,7 @@ module MarsRobot {
         cmdSeq
         anomalyDetector1
         romiHwDriver1
+        motorCntrlManager1
     }
     text event connections instance CdhCore.textLogger
     health connections instance CdhCore.$health
@@ -138,6 +140,7 @@ module MarsRobot {
       # Rate group 4
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn
       rateGroup4.RateGroupMemberOut[0] -> romiHwDriver1.schedIn
+      rateGroup4.RateGroupMemberOut[1] -> motorCntrlManager1.schedIn
     }
 
     connections CdhCore_cmdSeq {
@@ -153,8 +156,10 @@ module MarsRobot {
     }
 
     connections Romi {
+      motorCntrlManager1.setMotors -> romiHwDriver1.setMotors
       romiHwDriver1.i2cWrite -> romiI2cDriver.write
       romiHwDriver1.i2cWriteRead -> romiI2cDriver.writeRead
+      romiHwDriver1.sendEncoders -> motorCntrlManager1.receiveEncoders
     }
 
   }

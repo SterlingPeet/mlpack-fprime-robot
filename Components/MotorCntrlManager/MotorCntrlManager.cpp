@@ -103,7 +103,9 @@ void MotorCntrlManager::setMotorSetpoint_handler(FwIndexType portNum, const ROMI
 // Command handlers
 // -------------------------------------------------------------------------
 
-void MotorCntrlManager::ENABLE_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+void MotorCntrlManager::ENABLE_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, I16 left, I16 right) {
+    m_cmdLeft = left;
+    m_cmdRight = right;
     if (!m_motorsEnabled) {
         m_motorsEnabled = true;
         this->log_ACTIVITY_HI_MotorsStateChanged(Fw::On::ON);
@@ -115,8 +117,8 @@ void MotorCntrlManager::DISABLE_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSe
     if (m_motorsEnabled) {
         m_motorsEnabled = false;
         // Clear the cached setpoint so a re-enable doesn't apply stale speed.
-        m_cmdLeft = 0;
-        m_cmdRight = 0;
+        // m_cmdLeft = 0;
+        // m_cmdRight = 0;
         this->log_ACTIVITY_HI_MotorsStateChanged(Fw::On::OFF);
     }
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
