@@ -48,6 +48,7 @@ namespace PingEntries {
     namespace MarsRobot_rateGroup1 {enum { WARN = 3, FATAL = 5 };}
     namespace MarsRobot_rateGroup2 {enum { WARN = 3, FATAL = 5 };}
     namespace MarsRobot_rateGroup3 {enum { WARN = 3, FATAL = 5 };}
+    namespace MarsRobot_rateGroup4 {enum { WARN = 3, FATAL = 5 };}
     namespace MarsRobot_cmdSeq {enum { WARN = 3, FATAL = 5 };}
 }  // namespace PingEntries
 

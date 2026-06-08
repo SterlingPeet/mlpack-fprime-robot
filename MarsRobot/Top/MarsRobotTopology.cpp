@@ -7,6 +7,9 @@
 #include <MarsRobot/Top/MarsRobotTopologyAc.hpp>
 // Note: Uncomment when using Svc:TlmPacketizer
 //#include <MarsRobot/Top/MarsRobotPacketsAc.hpp>
+#include <Components/RomiI2cDriver/RomiI2cDriver.hpp>
+//#include <Config/RomiCfg.hpp>
+#include "config/RomiCfg.hpp"
 
 // Necessary project-specified types
 #include <Fw/Types/MallocAllocator.hpp>
@@ -18,14 +21,15 @@ namespace MarsRobot {
 // Instantiate a malloc allocator for cmdSeq buffer allocation
 Fw::MallocAllocator mallocator;
 
-// The reference topology divides the incoming clock signal (1Hz) into sub-signals: 1Hz, 1/2Hz, and 1/4Hz with 0 offset
-Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{1, 0}, {2, 0}, {4, 0}}};
+// 50 Hz base; divisors give rg4=50 Hz, rg1=1 Hz, rg2=0.5 Hz, rg3=0.25 Hz
+Svc::RateGroupDriver::DividerSet rateGroupDivisorsSet{{{1, 0}, {50, 0}, {100, 0}, {200, 0}}};
 
 // Rate groups may supply a context token to each of the attached children whose purpose is set by the project. The
 // reference topology sets each token to zero as these contexts are unused in this project.
 U32 rateGroup1Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup2Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 U32 rateGroup3Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
+U32 rateGroup4Context[Svc::ActiveRateGroup::CONNECTION_COUNT_MAX] = {};
 
 enum TopologyConstants {
     COMM_PRIORITY = 34,
@@ -46,9 +50,14 @@ void configureTopology() {
     rateGroup1.configure(rateGroup1Context, FW_NUM_ARRAY_ELEMENTS(rateGroup1Context));
     rateGroup2.configure(rateGroup2Context, FW_NUM_ARRAY_ELEMENTS(rateGroup2Context));
     rateGroup3.configure(rateGroup3Context, FW_NUM_ARRAY_ELEMENTS(rateGroup3Context));
+    rateGroup4.configure(rateGroup4Context, FW_NUM_ARRAY_ELEMENTS(rateGroup4Context));
 
     // Command sequencer needs to allocate memory to hold contents of command sequences
     cmdSeq.allocateBuffer(0, mallocator, 5 * 1024);
+
+    // Open the Romi I2C bus before the 50 Hz loop starts touching it
+    romiI2cDriver.open(ROMI::I2C_DEVICE);
+    //romiI2cDriver.open("/dev/i2c-1");
 }
 
 void setupTopology(const TopologyState& state) {

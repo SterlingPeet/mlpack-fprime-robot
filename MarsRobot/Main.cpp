@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     // Setup, cycle, and teardown topology
     MarsRobot::setupTopology(inputs);
-    MarsRobot::startRateGroups(Fw::TimeInterval(1,0));  // Program loop cycling rate groups at 1Hz
+    MarsRobot::startRateGroups(Fw::TimeInterval(0, 20000));  // 20 ms → 50 Hz base rate
     MarsRobot::teardownTopology(inputs);
     Fw::Logger::log("Exiting...\n");
     return 0;

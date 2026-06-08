@@ -18,4 +18,6 @@ register_fprime_module(
         "${CMAKE_CURRENT_LIST_DIR}/MarsRobotTopology.cpp"
     DEPENDS
         Fw_Logger
+        Components_RomiI2cDriver
+        Components_RomiHWDriver
 )

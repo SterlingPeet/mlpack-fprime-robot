@@ -5,6 +5,7 @@ module MarsRobot {
   # ----------------------------------------------------------------------
 
   enum Ports_RateGroups {
+    rateGroup4
     rateGroup1
     rateGroup2
     rateGroup3
@@ -27,6 +28,7 @@ module MarsRobot {
     instance rateGroup1
     instance rateGroup2
     instance rateGroup3
+    instance rateGroup4
     instance rateGroupDriver
     instance systemResources
     instance timer
@@ -34,6 +36,8 @@ module MarsRobot {
     instance cmdSeq
     instance anomalyDetector1
     instance tlmSplitter
+    instance romiHwDriver1
+    instance romiI2cDriver
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -45,8 +49,10 @@ module MarsRobot {
         rateGroup1
         rateGroup2
         rateGroup3
+        rateGroup4
         cmdSeq
         anomalyDetector1
+        romiHwDriver1
     }
     text event connections instance CdhCore.textLogger
     health connections instance CdhCore.$health
@@ -128,6 +134,10 @@ module MarsRobot {
       rateGroup3.RateGroupMemberOut[2] -> DataProducts.dpBufferManager.schedIn
       rateGroup3.RateGroupMemberOut[3] -> DataProducts.dpWriter.schedIn
       rateGroup3.RateGroupMemberOut[4] -> DataProducts.dpMgr.schedIn
+
+      # Rate group 4
+      rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup4] -> rateGroup4.CycleIn
+      rateGroup4.RateGroupMemberOut[0] -> romiHwDriver1.schedIn
     }
 
     connections CdhCore_cmdSeq {
@@ -140,6 +150,11 @@ module MarsRobot {
       systemResources.Tlm -> tlmSplitter.TlmRecv
       tlmSplitter.TlmOutA -> CdhCore.tlmSend.TlmRecv
       tlmSplitter.TlmOutB -> anomalyDetector1.tlmIn
+    }
+
+    connections Romi {
+      romiHwDriver1.i2cWrite -> romiI2cDriver.write
+      romiHwDriver1.i2cWriteRead -> romiI2cDriver.writeRead
     }
 
   }
