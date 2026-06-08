@@ -230,6 +230,12 @@ void RomiHWDriver::SET_RED_LED_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, Fw::O
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
+void RomiHWDriver::SET_MOTORS_cmdHandler(FwOpcodeType opCode, U32 cmdSeq, I16 left, I16 right) {
+    m_motorCache[0] = left;
+    m_motorCache[1] = right;
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
 // -------------------------------------------------------------------------
 // PLAY_NOTES command handler
 // -------------------------------------------------------------------------
