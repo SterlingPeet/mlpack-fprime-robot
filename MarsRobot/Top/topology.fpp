@@ -54,9 +54,6 @@ module MarsRobot {
         rateGroup4
         cmdSeq
         anomalyDetector1
-        romiHwDriver1
-        motorCntrlManager1
-        romiImu1
     }
     text event connections instance CdhCore.textLogger
     health connections instance CdhCore.$health
@@ -153,6 +150,9 @@ module MarsRobot {
 
     connections MarsRobot {
       systemResources.Tlm -> tlmSplitter.TlmRecv
+      romiHwDriver1.tlmOut -> tlmSplitter.TlmRecv
+      motorCntrlManager1.tlmOut -> tlmSplitter.TlmRecv
+      romiImu1.tlmOut -> tlmSplitter.TlmRecv
       tlmSplitter.TlmOutA -> CdhCore.tlmSend.TlmRecv
       tlmSplitter.TlmOutB -> anomalyDetector1.tlmIn
     }
