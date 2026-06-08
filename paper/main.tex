@@ -39,6 +39,7 @@
 \usepackage{lipsum}
 \usepackage{indentfirst}
 \usepackage{url}
+\usepackage{minted}
 \newenvironment{Figure}
   {\par\medskip\noindent\minipage{\linewidth}}
   {\endminipage\par\medskip}
@@ -267,9 +268,87 @@ such as computer vision and image classification~\cite{giuffrida2021varphi,leon2
 health monitoring~\cite{volponi2008enhanced},
 and other tasks.
 Our code is publicly available for use and adaptation at
-\url{https://github.com/SterlingPeet/mlpack-FPrime-robot}.
+\url{https://github.com/SterlingPeet/mlpack-FPrime-robot},
+licensed under the TODO license~\cite{}.
 
-\section{DESIGN GOALS}
+\section{SOFTWARE OVERVIEW}
+
+\subsection{F-Prime}
+
+As mentioned earlier,
+F-Prime is a modular flight software framework
+emphasizing the reusability of individual parts of software across different missions.
+In F-Prime,
+each part of the mission is
+decomposed into discrete {\it Components}
+with well-defined interfaces;
+these serve as the fundamental building blocks
+for the mission software.
+
+A single mission consists of a number of components
+connected in a specific way,
+called a {\it deployment}.
+Each F-Prime component's interface is defined as a
+number of input and output ports,
+which are defined and connected to other components.
+This interface and connections are specified in the
+Fpp domain-specific language~\cite{bocchino2022fpp}.
+For example,
+the {\small \tt Svc.SystemResources} component,
+which monitors the state of the computing environment
+(e.g. RAM usage, CPU utilization),
+typically outputs its telemetry via an Fpp connection
+to the mission telemetry service,
+which will report the telemetry to the ground control systems.
+
+The F-Prime framework handles all of the communication between components,
+and provides numerous default components and deployments.
+This means that for a user,
+implementing the mission software stack
+typically means taking several F-Prime-supplied off-the-shelf components
+and connecting them with a few custom components
+implemented specifically for the mission.
+
+Once the components are implemented
+and the connections in the deployment are defined,
+an F-Prime deployment can easily be cross-compiled to any target platform,
+including traditional platforms like VxWorks on the RAD750,
+and newer platforms like ARM systems running lightweight Linux distributions
+(for instance, a Raspberry Pi).
+
+Compilation and configuration is handled via
+CMake, which is likely the most widely-used C++ build system generator.
+F-Prime automatically generates the CMake configuration
+based on the deployment topology.
+A user who has implemented their flight software with F-Prime
+can typically build and run it with a few simple commands
+via the use of the helper {\small \tt fprime-util} and {\small \tt fprime-gds}
+programs:
+
+\begin{minted}{bash}
+  # automatically configure CMake
+  $ fprime-util generate
+
+  # build project with CMake
+  $ fprime-util build
+
+  # run the software and display
+  # ground control interface
+  $ fprime-gds
+\end{minted}
+
+F-Prime deployments can work even on very resource-constrained hardware;
+for instance,
+it has been successfully used with program memory size as small as 128 kB
+and RAM as small as 64 kB~\cite{}.
+
+Further resources on F-Prime can be found
+in the original F-Prime paper~\cite{bocchino2018f},
+and more details related to our deployment topology can be found
+in the previous work of Peet et~al.~\cite{peet2024framework},
+whose work we have used as a starting point.
+
+\section{HARDWARE OVERVIEW}
 
 \section{ARCHITECTURE}
 
