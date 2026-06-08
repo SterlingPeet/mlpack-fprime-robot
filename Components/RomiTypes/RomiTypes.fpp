@@ -3,6 +3,16 @@ module ROMI {
   @ Default I2C Address for the Romi
   constant ROMI_I2C_DEFAULT_ADDRESS = 20 @< Default I2C Address for the Romi
 
+  @ Default I2C address of the on-board LSM6DS33 accelerometer/gyro.
+  @ On the Romi 32U4 Control Board the sensor's SA0 pin is pulled high, so it
+  @ answers at 7-bit address 0x6B on the same bus the Raspberry Pi masters
+  @ (it appears alongside the 32U4 slave at 0x14 in `i2cdetect -y 1`).
+  constant LSM6DS33_I2C_DEFAULT_ADDRESS = 0x6B @< LSM6DS33 default I2C address
+
+  @ Value returned by the LSM6DS33 WHO_AM_I register (0x0F); used to confirm
+  @ the sensor is present and responding before trusting its output data.
+  constant LSM6DS33_WHO_AM_I_VALUE = 0x69 @< Expected WHO_AM_I identity byte
+
   @Enum representing the addresses for each register on the Romi
   enum RomiRegister {
     ENCODERS = 0 @< Left motor encoder value
