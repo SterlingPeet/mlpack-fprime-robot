@@ -5,6 +5,7 @@
 // ======================================================================
 
 #include "Components/KDEAnomalyDetector/KDEAnomalyDetector.hpp"
+#include "Fw/Types/OnEnumAc.hpp"
 
 namespace Components {
 
@@ -17,46 +18,81 @@ KDEAnomalyDetector ::KDEAnomalyDetector(const char* const compName) : KDEAnomaly
 
     // Svc::SystemResources
     // Base ID of 0x10012000 comes from topology directly.
-    dimMap[0x10012000] = 0;           // MEMORY_TOTAL (u64)
-    dimMap[0x10012001] = 1;           // MEMORY_USED (u64)
+    dimMap[0x10012000] = size_t(-1);  // MEMORY_TOTAL (u64)
+    dimMap[0x10012001] = size_t(-1);  // MEMORY_USED (u64)
     dimMap[0x10012002] = size_t(-1);  // Intentionally ignored.
     dimMap[0x10012003] = size_t(-1);
     dimMap[0x10012004] = size_t(-1);
-    dimMap[0x10012005] = 2;   // CPU (f32)
-    dimMap[0x10012006] = 3;   // CPU1 (f32)
-    dimMap[0x10012007] = 4;   // CPU2 (f32)
-    dimMap[0x10012008] = 5;   // CPU3 (f32)
-    dimMap[0x10012009] = 6;   // CPU4 (f32)
-    dimMap[0x1001200a] = 7;   // CPU5 (f32)
-    dimMap[0x1001200b] = 8;   // CPU6 (f32)
-    dimMap[0x1001200c] = 9;   // CPU7 (f32)
-    dimMap[0x1001200d] = 10;  // CPU8 (f32)
-    dimMap[0x1001200e] = 11;  // CPU9 (f32)
-    dimMap[0x1001200f] = 12;  // CPU10 (f32)
-    dimMap[0x10012010] = 13;  // CPU11 (f32)
-    dimMap[0x10012011] = 14;  // CPU12 (f32)
-    dimMap[0x10012012] = 15;  // CPU13 (f32)
-    dimMap[0x10012013] = 16;  // CPU14 (f32)
-    dimMap[0x10012014] = 17;  // CPU15 (f32)
+    dimMap[0x10012005] = 0;   // CPU (f32)
+    dimMap[0x10012006] = 1;   // CPU1 (f32)
+    dimMap[0x10012007] = 2;   // CPU2 (f32)
+    dimMap[0x10012008] = 3;   // CPU3 (f32)
+    dimMap[0x10012009] = 4;   // CPU4 (f32)
+    dimMap[0x1001200a] = 5;   // CPU5 (f32)
+    dimMap[0x1001200b] = 6;   // CPU6 (f32)
+    dimMap[0x1001200c] = 7;   // CPU7 (f32)
+    dimMap[0x1001200d] = 8;   // CPU8 (f32)
+    dimMap[0x1001200e] = 9;   // CPU9 (f32)
+    dimMap[0x1001200f] = 10;  // CPU10 (f32)
+    dimMap[0x10012010] = 11;  // CPU11 (f32)
+    dimMap[0x10012011] = 12;  // CPU12 (f32)
+    dimMap[0x10012012] = 13;  // CPU13 (f32)
+    dimMap[0x10012013] = 14;  // CPU14 (f32)
+    dimMap[0x10012014] = 15;  // CPU15 (f32)
 
-    dimTypes[0] = 0;   // U64 (MEMORY_TOTAL)
-    dimTypes[1] = 0;   // U64 (MEMORY_USED)
-    dimTypes[2] = 1;   // F32 (CPU)
-    dimTypes[3] = 1;   // F32 (CPU1)
-    dimTypes[4] = 1;   // F32 (CPU2)
-    dimTypes[5] = 1;   // F32 (CPU3)
-    dimTypes[6] = 1;   // F32 (CPU4)
-    dimTypes[7] = 1;   // F32 (CPU5)
-    dimTypes[8] = 1;   // F32 (CPU6)
-    dimTypes[9] = 1;   // F32 (CPU7)
-    dimTypes[10] = 1;  // F32 (CPU8)
-    dimTypes[11] = 1;  // F32 (CPU9)
-    dimTypes[12] = 1;  // F32 (CPU10)
-    dimTypes[13] = 1;  // F32 (CPU11)
-    dimTypes[14] = 1;  // F32 (CPU12)
-    dimTypes[15] = 1;  // F32 (CPU13)
-    dimTypes[16] = 1;  // F32 (CPU14)
-    dimTypes[17] = 1;  // F32 (CPU15)
+    // ROMI::RomiHWDriver
+    // Base ID from 0x10007000 comes from topology directly.
+    dimMap[0x10007000] = size_t(-1);  // I2C address of controller (ignored).
+    dimMap[0x10007001] = 16;          // BatteryVoltage (F32)
+    dimMap[0x10007002] = size_t(-1);  // Analog sensors (ignored).
+
+    // ROMI::MotorCntrlManager
+    // Base ID from 0x1000a000 comes from topology directly.
+    dimMap[0x1000a000] = 17;  // LeftOdometry (I32)
+    dimMap[0x1000a001] = 18;  // RightOdometry (I32)
+    dimMap[0x1000a002] = 19;  // MotorsEnabled (Fw.On)
+    dimMap[0x1000a003] = 20;  // LeftDelta (I16)
+    dimMap[0x1000a004] = 21;  // RightDelta (I16)
+
+    // ROMI::RomiIMU
+    // Base ID from 0x1000b000 comes from topology directly.
+    dimMap[0x1000b000] = 22;  // AccelX (F32)
+    dimMap[0x1000b001] = 23;  // AccelY (F32)
+    dimMap[0x1000b002] = 24;  // AccelZ (F32)
+    dimMap[0x1000b003] = 25;  // GyroX (F32)
+    dimMap[0x1000b004] = 26;  // GyroY (F32)
+    dimMap[0x1000b005] = 27;  // GyroZ (F32)
+    dimMap[0x1000b006] = 28;  // ImuTemp (F32)
+
+    dimTypes[0] = 1;   // F32 (CPU)
+    dimTypes[1] = 1;   // F32 (CPU1)
+    dimTypes[2] = 1;   // F32 (CPU2)
+    dimTypes[3] = 1;   // F32 (CPU3)
+    dimTypes[4] = 1;   // F32 (CPU4)
+    dimTypes[5] = 1;   // F32 (CPU5)
+    dimTypes[6] = 1;   // F32 (CPU6)
+    dimTypes[7] = 1;   // F32 (CPU7)
+    dimTypes[8] = 1;   // F32 (CPU8)
+    dimTypes[9] = 1;   // F32 (CPU9)
+    dimTypes[10] = 1;  // F32 (CPU10)
+    dimTypes[11] = 1;  // F32 (CPU11)
+    dimTypes[12] = 1;  // F32 (CPU12)
+    dimTypes[13] = 1;  // F32 (CPU13)
+    dimTypes[14] = 1;  // F32 (CPU14)
+    dimTypes[15] = 1;  // F32 (CPU15)
+    dimTypes[16] = 1;  // F32 (BatteryVoltage)
+    dimTypes[17] = 2;  // I32 (LeftOdometry)
+    dimTypes[18] = 2;  // I32 (RightOdometry)
+    dimTypes[19] = 4;  // Fw::On (MotorsEnabled)
+    dimTypes[20] = 3;  // I16 (LeftDelta)
+    dimTypes[21] = 3;  // I16 (RightDelta)
+    dimTypes[22] = 1;  // F32 (AccelX)
+    dimTypes[23] = 1;  // F32 (AccelY)
+    dimTypes[24] = 1;  // F32 (AccelZ)
+    dimTypes[25] = 1;  // F32 (GyroX)
+    dimTypes[26] = 1;  // F32 (GyroY)
+    dimTypes[27] = 1;  // F32 (GyroZ)
+    dimTypes[28] = 1;  // F32 (ImuTemp)
 
     tlmCache.resize(this->numDims);
 }
@@ -99,6 +135,21 @@ void KDEAnomalyDetector ::tlmIn_handler(FwIndexType portNum, FwChanIdType id, Fw
         F32 v;
         val.deserializeTo(v);
         targetValue = (double)v;
+    } else if (targetType == 2)  // I32
+    {
+        I32 v;
+        val.deserializeTo(v);
+        targetValue = (double)v;
+    } else if (targetType == 3)  // I16
+    {
+        I16 v;
+        val.deserializeTo(v);
+        targetValue = (double)v;
+    } else if (targetType == 4)  // Fw::On
+    {
+        Fw::On v;
+        val.deserializeTo(v);
+        targetValue = (v == Fw::On::ON) ? 1.0 : 0.0;
     } else {
         Fw::LogStringArg logOut(
             "invalid target dimension type (must be 0/1); "

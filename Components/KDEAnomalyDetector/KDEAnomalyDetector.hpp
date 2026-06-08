@@ -59,7 +59,7 @@ class KDEAnomalyDetector final : public KDEAnomalyDetectorComponentBase {
                                    ) override;
 
   private:
-    constexpr static const size_t numDims = 18;
+    constexpr static const size_t numDims = 29;
 
     //! The current version of the tree.
     mlpack::KDE<> kde;
@@ -72,7 +72,7 @@ class KDEAnomalyDetector final : public KDEAnomalyDetectorComponentBase {
     U64 numResets;
 
     std::map<FwChanIdType, size_t> dimMap;
-    std::array<size_t, 18> dimTypes;
+    std::array<size_t, numDims> dimTypes;
 
     // Note: this cache is built on the assumption that telemetry comes in
     // pretty much once per second!  This will still work if that's not true,
