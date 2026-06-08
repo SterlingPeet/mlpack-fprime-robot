@@ -39,6 +39,7 @@ module MarsRobot {
     instance romiHwDriver1
     instance romiI2cDriver
     instance motorCntrlManager1
+    instance romiImu1
 
   # ----------------------------------------------------------------------
   # Pattern graph specifiers
@@ -55,6 +56,7 @@ module MarsRobot {
         anomalyDetector1
         romiHwDriver1
         motorCntrlManager1
+        romiImu1
     }
     text event connections instance CdhCore.textLogger
     health connections instance CdhCore.$health
@@ -79,7 +81,6 @@ module MarsRobot {
       # Router to Command Dispatcher
       ComCcsds.fprimeRouter.commandOut -> CdhCore.cmdDisp.seqCmdBuff
       CdhCore.cmdDisp.seqCmdStatus -> ComCcsds.fprimeRouter.cmdResponseIn
-      
     }
 
     connections ComCcsds_FileHandling {
@@ -96,11 +97,11 @@ module MarsRobot {
       # ComDriver buffer allocations
       comDriver.allocate      -> ComCcsds.commsBufferManager.bufferGetCallee
       comDriver.deallocate    -> ComCcsds.commsBufferManager.bufferSendIn
-      
+
       # ComDriver <-> ComStub (Uplink)
       comDriver.$recv                     -> ComCcsds.comStub.drvReceiveIn
       ComCcsds.comStub.drvReceiveReturnOut -> comDriver.recvReturnIn
-      
+
       # ComStub <-> ComDriver (Downlink)
       ComCcsds.comStub.drvSendOut      -> comDriver.$send
       comDriver.ready         -> ComCcsds.comStub.drvConnected
@@ -124,6 +125,7 @@ module MarsRobot {
       rateGroup1.RateGroupMemberOut[3] -> ComCcsds.comQueue.run
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> anomalyDetector1.run
+      rateGroup1.RateGroupMemberOut[6] -> romiImu1.schedIn
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn
@@ -160,6 +162,8 @@ module MarsRobot {
       romiHwDriver1.i2cWrite -> romiI2cDriver.write
       romiHwDriver1.i2cWriteRead -> romiI2cDriver.writeRead
       romiHwDriver1.sendEncoders -> motorCntrlManager1.receiveEncoders
+      romiImu1.i2cWrite -> romiI2cDriver.write
+      romiImu1.i2cWriteRead -> romiI2cDriver.writeRead
     }
 
   }

@@ -70,6 +70,11 @@ module MarsRobot {
     stack size Default.STACK_SIZE \
     priority 47
 
+  instance romiImu1: ROMI.RomiImu base id 0x1000b000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 48
+
   # ----------------------------------------------------------------------
   # Passive component instances
   # ----------------------------------------------------------------------
