@@ -41,6 +41,11 @@ module MarsRobot {
     stack size Default.STACK_SIZE \
     priority 41
 
+  instance rateGroup4: Svc.ActiveRateGroup base id 0x10008000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 44
+
   instance cmdSeq: Svc.CmdSequencer base id 0x10004000 \
     queue size Default.QUEUE_SIZE \
     stack size Default.STACK_SIZE \
@@ -51,7 +56,14 @@ module MarsRobot {
   # ----------------------------------------------------------------------
 
   instance anomalyDetector1: Components.KDEAnomalyDetector base id 0x10005000 \
-    queue size Default.QUEUE_SIZE
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 45
+
+  instance romiHwDriver1: ROMI.RomiHWDriver base id 0x10007000 \
+    queue size Default.QUEUE_SIZE \
+    stack size Default.STACK_SIZE \
+    priority 46
 
   # ----------------------------------------------------------------------
   # Passive component instances
@@ -68,5 +80,7 @@ module MarsRobot {
   instance comDriver: Drv.TcpServer base id 0x10014000
 
   instance tlmSplitter: Components.TlmSplitter base id 0x10006000
+
+  instance romiI2cDriver: ROMI.RomiI2cDriver base id 0x10009000
 
 }
