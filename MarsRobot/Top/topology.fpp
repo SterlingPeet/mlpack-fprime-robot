@@ -123,6 +123,7 @@ module MarsRobot {
       rateGroup1.RateGroupMemberOut[4] -> ComCcsds.aggregator.timeout
       rateGroup1.RateGroupMemberOut[5] -> anomalyDetector1.run
       rateGroup1.RateGroupMemberOut[6] -> romiImu1.schedIn
+      rateGroup1.RateGroupMemberOut[7] -> motorCntrlManager1.schedInSlow
 
       # Rate group 2
       rateGroupDriver.CycleOut[Ports_RateGroups.rateGroup2] -> rateGroup2.CycleIn

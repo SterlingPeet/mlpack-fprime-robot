@@ -66,6 +66,24 @@ void MotorCntrlManager::schedIn_handler(FwIndexType portNum, U32 context) {
     this->tlmWrite_RightDelta(m_rightDelta);
 }
 
+void MotorCntrlManager::schedInSlow_handler(FwIndexType portNum, U32 context) {
+    // Compute the actual speed we are going.
+    Fw::Time currentTime = getTime();
+    const F64 timeDiff = (currentTime - m_lastOdoTime);
+    const F32 leftVelocity = (m_leftOdo - m_lastLeftOdo) / timeDiff;
+    const F32 rightVelocity = (m_rightOdo - m_lastRightOdo) / timeDiff;
+
+    this->tlmWrite_LeftVelocity(leftVelocity);
+    this->tlmWrite_RightVelocity(rightVelocity);
+    this->tlmWrite_LeftSpeed(m_motorsEnabled ? m_cmdLeft : 0);
+    this->tlmWrite_RightSpeed(m_motorsEnabled ? m_cmdRight : 0);
+
+    // Store measurements for next tick.
+    m_lastLeftOdo = m_leftOdo;
+    m_lastRightOdo = m_rightOdo;
+    m_lastOdoTime = currentTime;
+}
+
 // -------------------------------------------------------------------------
 // receiveEncoders_handler — called by RomiHWDriver each I2C cycle
 // -------------------------------------------------------------------------

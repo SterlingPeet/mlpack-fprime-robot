@@ -38,6 +38,9 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
     //! Emit telemetry, apply cached motor command, push encoder deltas
     void schedIn_handler(FwIndexType portNum, U32 context) override;
 
+    //! Emit computed velocity telemetry
+    void schedInSlow_handler(FwIndexType portNum, U32 context) override;
+
     //! Compute delta (wrap-safe), accumulate I32 odometry
     void receiveEncoders_handler(FwIndexType portNum, const ROMI::MotorEncoders& encoders) override;
 
@@ -105,6 +108,13 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
 
     //! Motor enable state — false at construction, toggled by commands
     bool m_motorsEnabled;
+
+    //! Last odometry reading for velocity computation.
+    I32 m_lastLeftOdo;
+    I32 m_lastRightOdo;
+
+    //! Time of last odometry reading.
+    Fw::Time m_lastOdoTime;
 };
 
 }  // namespace ROMI
