@@ -1,0 +1,289 @@
+% SmallSat conference LaTeX paper template based on work by Laura Yenchensky and Peter Grenfell 2018-2019.
+% Updated to match original SmallSat.docx template by Rachel Morgan, March 2020.
+% References to Word styles omitted, Figure 2 example added, and copy edited generally by Boyd Edwards, Utah State University, May 2020.
+% Updated file organization by Ryan Thibaudeau, March 2024.
+% Updated date & conference number by Ryan Martineau, April 2026
+
+\documentclass[10pt, fleqn]{article}
+\usepackage[utf8]{inputenc}
+\DeclareUnicodeCharacter{2212}{$-$}
+\usepackage{graphicx}
+\usepackage[fleqn]{amsmath}
+\usepackage[version=4]{mhchem}
+\usepackage{siunitx}
+\usepackage{longtable,tabularx}
+\usepackage{nccmath}
+\usepackage{amsmath}
+\usepackage[superscript]{cite}
+\usepackage[margin=1in]{geometry}
+\usepackage[toc,page]{appendix}
+\usepackage{setspace}
+\usepackage{amssymb}
+\usepackage{tabu}
+\usepackage{listings}
+\setlength\LTleft{0pt} 
+\usepackage{afterpage}
+\setlength{\columnsep}{18pt}
+\usepackage{titlesec}
+\usepackage[labelfont=bf]{caption}
+\captionsetup{labelfont=bf,textfont=bf}
+\usepackage{fancyhdr}
+\usepackage{pgf}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{cleveref}
+\usepackage{textcomp}
+\usepackage{pict2e}
+\usepackage{wasysym}
+\usepackage{multicol}
+\usepackage{lipsum}
+\usepackage{indentfirst}
+\usepackage{url}
+\newenvironment{Figure}
+  {\par\medskip\noindent\minipage{\linewidth}}
+  {\endminipage\par\medskip}
+\newcommand\T{\rule{0pt}{2.6ex}}
+\newcommand\B{\rule[-1.2ex]{0pt}{0pt}}
+\pagestyle{fancy}
+\fancyhead{} 
+\renewcommand{\footrulewidth}{1pt}
+\renewcommand{\headrulewidth}{0pt}
+
+% Input the author name for the footer:
+\lfoot{Curtin et al.}
+
+\rfoot{$40^{th}$ Annual Small Satellite Conference}
+
+\titleformat{\section}
+{\normalfont\normalsize\bfseries}{\thesection}{0.5em}{}
+\titleformat{\subsection}
+{\normalfont\normalsize\bfseries\em}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}
+{\normalfont\normalsize\bfseries\em}{\thesubsubsection}{0.5em}{}
+\setlength{\mathindent}{0cm}
+\newcommand\blankpage{
+    \null
+    \thispagestyle{empty}
+    \addtocounter{page}{-1}
+    \newpage
+    }
+
+\singlespacing
+
+\begin{document}
+
+%%%% TITLE %%%%
+\begin{flushright}
+\Large % (14 point font)
+
+% Input the paper number: 
+\textbf{[SSC26-VII-08]}
+\end{flushright}
+\begin{centering}      
+\large % (12 point font)
+
+% Input the title: 
+\textbf{Lightweight open source on-spacecraft machine learning with mlpack and F-Prime}\\
+\vspace{0.5cm}
+\normalsize % set to 10 point font
+
+% Input the author information:
+Ryan R. Curtin\\
+NumFOCUS, Inc.\\
+\texttt{ryan@ratml.org}\\
+\vspace{0.5cm}
+Scott M. Gilliland\\
+Georgia Institute of Technology\\
+\texttt{scott.gilliland@gatech.edu}\\
+\vspace{0.5cm}
+Sterling L. Peet\\
+Georgia Institute of Technology\\
+\texttt{sterling.peet@gatech.edu}\\
+
+\end{centering}
+
+%%%% ABSTRACT %%%%
+\begin{centering}
+    \vspace{0.5cm}
+    \centerline{\textbf{ABSTRACT}}
+    \vspace{0.3cm}
+\end{centering}
+
+Onboard machine learning is an increasingly important topic in spaceflight systems,
+as machine learning and AI models are increasingly used for
+data processing, anomaly detection, attitude control systems, and other predictive applications.
+However, successfully deploying a machine learning model
+in a spaceflight computing environment is
+fraught with difficulty,
+as spaceflight computing environments are low-resource,
+but typical machine learning software solutions are implemented in languages like Python,
+which require an interpreter and other heavyweight dependencies.
+It is therefore virtually mandatory for
+any on-spacecraft machine learning
+to be written with lightweight toolkits
+that minimize dependencies and resource usage.
+
+We demonstrate a solution to this problem:
+via the use of open source C++-based scientific computing software,
+including the mlpack machine learning library
+and Armadillo linear algebra library,
+we provide the first implementation of a
+working on-spacecraft machine learning anomaly detection system
+inside the F-Prime flight software framework
+that successfully detects non-trivial anomalous events
+by using a kernel density estimate on telemetry data.
+Our prototype is validated on physical hardware,
+where we physically created several anomalous situations
+that were all successfully detected.
+The code is available publicly on Github
+and can be used as a reference project for deploying
+any complex machine learning pipeline
+to a spacecraft via the F-Prime framework.
+
+%These problems can be resolved via the use of open source C++-based
+%scientific computing software, such as the mlpack machine learning
+%library and Armadillo linear algebra library.  These tools enable a wide
+%variety of potential machine learning and AI applications directly on
+%the spacecraft; because they are written in lightweight header-only C++,
+%they are able to be cross-compiled easily to any target device,
+%including typical spacecraft compute architectures such as ARM, RISC-V,
+%PowerPC, and SPARC64.  In addition, the use of C++ means minimal
+%computational overhead.
+%
+%To demonstrate the efficacy of this approach, we have implemented the
+%first use of C++-based machine learning toolkits directly as components
+%in the F-Prime framework, a standard flight software offering from NASA.
+%Using telemetry channels that F-Prime makes available, we train an
+%anomaly detection model using kernel density estimation with kd-trees.
+%This model is significantly more capable than common simple
+%threshold-based anomaly detectors, and is adaptive to the current
+%working state of the spacecraft via continual retraining of the model.
+%
+%This demonstration is physically validated on a two-wheeled robotic
+%explorer platform; when we cause a slight wheel obstruction, the anomaly
+%detector immediately detects the issue.  The demonstration code is
+%open-source and well-documented.  It is therefore readily adaptable to
+%any other on-spacecraft machine learning task, such as image
+%classification, object detection and segmentation, predictive control,
+%position and orientation estimation, and other real-time modeling tasks.
+
+
+%%%% ACTUAL PAPER %%%%
+\begin{multicols*}{2}
+
+\section{INTRODUCTION}
+
+Modern spaceflight missions
+produce massive amounts of data.
+NASA missions are now generating over 100~TB of data each day~\cite{lee2021nasa},
+and this presents a significant challenge for data processing.
+Increasingly, a solution to this problem is
+direct on-board machine learning
+to process the data
+(as opposed to downlinking the data for ground-based processing)~\cite{henriquez2016high, habib2022artificial, cody2017application}.
+But the computational resources available on
+low-power satellites, such as CubeSats~\cite{poghosyan2017cubesat}
+and other similar craft such as extraplanetary rovers
+are quite limited.
+
+Often, the computational platforms of satellites can be somewhat esoteric.
+Although ARM-based platforms are likely the most common,
+with use in missions like SpaceCube~\cite{brewer2020nasa} and DODONA~\cite{mae2022dorbit},
+legacy platforms are also in wide usage.
+For instance, the ArgoMoon mission~\cite{lombardo2022design}
+and Roman Space Telescope~\cite{goodwill2021nasa} use SPARC processor.
+The common BAE RAD750~\cite{berger2001rad750} is a PowerPC processor and
+is used on the Perserverance and Curiosity rovers~\cite{goodwill2021nasa}.
+Even platforms like MIPS are in use on missions like New Horizons~\cite{kusnierkiewicz2005description}.
+
+A further constraint on spaceflight computing systems is
+the flight software framework being used to control them.
+Two common choices,
+both supported by NASA,
+are F-Prime~\cite{bocchino2018f}
+and core Flight System (cFS)~\cite{mccomas2012nasa}.
+cFS is written in C,
+adhering to the C99 standard.
+Although this allows for precise programmer control in an embedded context,
+it makes interoperability with non-C99 toolkits difficult.
+For similar reasons, F-Prime is written in C++,
+targeting the C++11 standard or newer.
+This choice comes with the same interoperability difficulties.
+
+This variety of computing platforms,
+the general lack of computing resources present on them,
+as well as the language limitations imposed by cFS and F-Prime
+present a huge barrier to
+practitioners wishing to perform machine learning directly on a spacecraft.
+Most widely-used machine learning software packages,
+such as {\small \tt scikit-learn}~\cite{pedregosa2011scikit},
+TensorFlow~\cite{abadi2016tensorflow},
+or PyTorch~\cite{paszke2019pytorch}
+provide interfaces in Python.
+This is problematic for lightweight deployment:
+Python requires a language interpreter,
+which is inefficient and can be orders of magnitude larger than
+storage resources permit~\cite{mlpack_pydata}.
+Even projects aimed to productionalize machine learning models present problems:
+efforts like XLA~\cite{sabne2020xla},
+TensorFlow Lite,
+and ExecuTorch for PyTorch
+are cumbersome to build and link against,
+as they use complex build systems and have many dependencies.
+Vendor-specific alternatives like ARM's CMSIS-NN~\cite{ARM_CMSIS_NN}
+suffer from limited vendor support,
+limited functionality,
+and cannot be deployed on other hardware.
+
+Yet there exists a widely-used
+native C++ scientific computing ecosystem,
+made up of tools like
+Armadillo~\cite{sanderson2016armadillo}, Eigen~\cite{guennebaud2010eigen}, and xTensor~\cite{xtensor} for linear algebra,
+mlpack~\cite{mlpack2023}, dlib-ml~\cite{king2009dlib}, and ensmallen~\cite{curtin2021ensmallen} for machine learning,
+and numerous other libraries for related tasks.
+Many of these tools are intentionally lightweight, header-only, and dependency-free;
+thus they can be easily cross-compiled to any target architecture
+and deployed without burdensome dependency requirements.
+These libraries have been deployed widely,
+including for other on-board spaceflight applications~\cite{hackett2017implementation,hackett2018implementation}.
+
+In this paper,
+we put both of these pieces together to solve the problem:
+we demonstrate that mlpack can be easily used inside of F-Prime
+to build a lightweight machine learning anomaly detector
+that runs directly on-board the spacecraft
+without the need for ground-based intervention.
+Following Peet~et~al.~\cite{peet2024framework},
+we deployed our solution to a Pololu Romi robot,
+which serves as a surrogate of a small satellite or extraplanetary rover.
+Our anomaly detector framework was able to successfully detect
+a number of complex anomalous situations
+that are not trivially detected with,
+e.g., thresholding.
+
+Although our purposes here are to detect telemetry anomalies,
+our solution can be trivially adapted to other common on-board machine learning tasks,
+such as computer vision and image classification~\cite{giuffrida2021varphi,leon2023accelerating},
+health monitoring~\cite{volponi2008enhanced},
+and other tasks.
+Our code is publicly available for use and adaptation at
+\url{https://github.com/SterlingPeet/mlpack-FPrime-robot}.
+
+\section{DESIGN GOALS}
+
+\section{ARCHITECTURE}
+
+\section{EXPERIMENTS}
+
+\section{CONCLUSION}
+
+%\input{Instructions} %comment this line out before downloading PDF for submission
+%Input other body text sections here
+
+\end{multicols*}
+\bibliography{refs}
+\bibliographystyle{unsrt}
+
+
+\end{document}
+
