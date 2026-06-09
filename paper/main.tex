@@ -738,6 +738,35 @@ to model the probability density.
 
 \section{EXPERIMENTS}
 
+The basic plan for experiments is this:
+
+\begin{itemize}
+  \item First in `stationary' mode, detect unexpected use of CPU resources.
+    \subitem This is a really easy example.
+    \subitem In fact I even need to point out it could be done with just plain
+thresholding.
+    \subitem Show a plot of the density estimate over time.
+
+  \item Next in `straight-line' mode, detect when the vehicle starts to turn.
+    \subitem This example is more difficult and requires correlations between sensors.
+    \subitem Again show a plot of density over time with anomalous regions highlighted.
+    \subitem The graph should also show wheel speeds.
+
+  \item Still in `straight-line' mode, detect when physical obstructions cause problems:
+    \subitem Half-on-carpet half-on-wood floor will likely result in turning even if the wheels are fine.
+    \subitem Running into a cat will result in an anomaly too.  Will the cat stay still?  Unclear.
+    \subitem Plots should be the same: motor, important sensors, density estimate.
+
+  \item Now in `spinning' mode, detect when a physical obstruction causes a problem.
+    \subitem Put a finger on one wheel.
+    \subitem Pick the robot up and put it on its side.
+    \subitem Again, plots should be the same.
+\end{itemize}
+
+Probably it makes sense for a few of these anomaly situations to include pictures of the anomaly we are applying, too.  Like e.g. a picture of the robot with a finger on the wheel; a picture of the robot interacting with a cat; a picture of the robot on its side.
+
+Details will also be needed about precisely what the `training' of the density estimator involved.  For instance, for `spin' mode I cycle it through all possible wheel speed values for a while.
+
 \section{CONCLUSION}
 
 %\input{Instructions} %comment this line out before downloading PDF for submission
