@@ -261,6 +261,12 @@ licensed under the TODO license~\cite{}.
 \section{SOFTWARE OVERVIEW}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Our flight control software is implemented in C++ as
+an F-Prime deployment
+that internally uses mlpack's
+kernel density estimation technique
+for its anomaly detection functionality.
+
 \subsection{F-Prime}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -426,7 +432,7 @@ for our on-spacecraft anomaly detector.
 \section{HARDWARE OVERVIEW}
 
 Building on Peet et~al.~\cite{peet2024framework},
-we choose to use the Pololu Romi robot
+we choose to use the inexpensive Pololu Romi robot
 (shown in Figure~\ref{fig:romi})
 as a robotic explorer platform
 due to its standard hardware:
@@ -447,7 +453,8 @@ and 1GB of RAM.
 
 From a control perspective,
 the Romi contains two wheels whose speeds are programmable,
-as well as 3 LEDs (which we do not use for our work here).
+a speaker,
+and 3 LEDs (which we do not use for our work here).
 From a telemetry perspective,
 the following signals are available on the Romi
 and can be captured for F-Prime telemetry:
@@ -475,7 +482,61 @@ as well as multiple interconnected devices, sensors,
 and motors that enable (semi-)autonomous operation,
 and its main processor architecture (ARM) is commonly used in COTS spaceflight applications.
 
+\section{OPERATING CONCEPT}
+
+The operating concept of our robotic explorer envisions three distinct operation
+settings:
+
+\begin{itemize}
+  \item {\bf Stationary}.  In this mode,
+the explorer does not use its wheels to move,
+and it passively collects environmental data.
+It is expected in this mode that neither the
+external environment (measured via temperature, acceleration)
+nor the internal environment (CPU usage)
+changes significantly.
+
+  \item {\bf Straight-line}.  In this mode,
+the explorer is always moving forward or backward at either
+a low velocity or high velocity
+(but {\em not} an intermediate velocity or stopped).
+It is expected that the measured rate of travel
+matches the controlled wheel speeds,
+and that the controlled and measured velocities
+are neither zero nor an intermediate speed.
+
+  \item {\bf Spinning}.  In this mode,
+the explorer's left wheel speed is
+equivalent to the right wheel speed,
+but in opposite directions,
+so the explorer is stationary but rotating.
+The rate of rotation can be arbitrary,
+but the explorer is expected to remain stationary
+and rotate at the rate given by the wheel speed.
+\end{itemize}
+
+During normal operation,
+an anomaly detection system that tracks previous telemetry
+is always running,
+and should the explorer enter an operating region where the
+collected telemetry does not match
+telemetry collected from known-good operation,
+an error will be issued.
+In our implementation,
+we simply used the speaker to indicate anomalies audibly.
+(In a real spaceflight application,
+it is likely that either a louder speaker or
+some other non-acoustic anomaly reporting means would be desired.)
+
+Commands sent to the explorer
+can set it in any of these three modes,
+and reset the anomaly detection system
+such that its recent collected telemetry
+is interpreted as corresponding to the explorer working as desired.
+
 \section{ARCHITECTURE}
+
+\section{ANOMALY DETECTION}
 
 \section{EXPERIMENTS}
 
