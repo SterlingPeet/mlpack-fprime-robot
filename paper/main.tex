@@ -425,6 +425,56 @@ for our on-spacecraft anomaly detector.
 
 \section{HARDWARE OVERVIEW}
 
+Building on Peet et~al.~\cite{peet2024framework},
+we choose to use the Pololu Romi robot
+(shown in Figure~\ref{fig:romi})
+as a robotic explorer platform
+due to its standard hardware:
+an ATMega32U4-based mainboard
+controlled by a Raspberry Pi via an I2c connection;
+in our case, we used a Raspberry Pi 3B+
+which contains a Cortex-A53 processor at 1.4 GHz
+and 1GB of RAM.
+
+\begin{Figure}
+\begin{center}
+\includegraphics[width=\textwidth]{img/romi.jpg}
+\end{center}
+\vspace*{-1.5em}
+\captionof{figure}{Pololu Romi robot.}
+\label{fig:romi}
+\end{Figure}
+
+From a control perspective,
+the Romi contains two wheels whose speeds are programmable,
+as well as 3 LEDs (which we do not use for our work here).
+From a telemetry perspective,
+the following signals are available on the Romi
+and can be captured for F-Prime telemetry:
+
+\begin{itemize}
+  \itemsep -2pt
+  \item Wheel turn counters (can be used for distance tracking)
+  \item Acceleration sensors (x/y/z axis)
+  \item Gyrometers (x/y/z)
+  \item Ambient temperature
+  \item Battery level
+\end{itemize}
+
+This is in addition to the default F-Prime telemetry
+running on the Raspberry Pi,
+which can track available memory, memory used,
+and CPU utilization percentages.
+
+Although the Romi seems unlikely to survive for very long
+if deployed as-is in a spaceflight environment,
+we find it to be a compelling demonstration platform,
+as it reflects typical qualities of real spaceflight computing platforms:
+it has limited computational power and memory,
+as well as multiple interconnected devices, sensors,
+and motors that enable (semi-)autonomous operation,
+and its main processor architecture (ARM) is commonly used in COTS spaceflight applications.
+
 \section{ARCHITECTURE}
 
 \section{EXPERIMENTS}
