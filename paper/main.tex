@@ -221,6 +221,8 @@ Vendor-specific alternatives like ARM's CMSIS-NN~\cite{ARM_CMSIS_NN}
 suffer from limited vendor support,
 limited functionality,
 and cannot be deployed on other hardware.
+Worse, vendor-supplied toolkits are often arbitrarily EOL'ed,
+as in the case of several Qualcomm and Intel toolkits.
 
 Yet there exists a widely-used
 native C++ scientific computing ecosystem,
@@ -373,7 +375,8 @@ to a wide variety of targets
 (including all spacecraft architectures described in the introduction),
 and mlpack has a CMake-based auto-downloader that
 can obtain all of the header-only dependencies of mlpack
-and automatically compile or cross-compile OpenBLAS.
+and automatically compile or cross-compile OpenBLAS
+without requiring user intervention.
 
 From a high level,
 using mlpack for machine learning purposes
@@ -387,6 +390,8 @@ two random uniform matrices of size $100 \times 50$ and
 computes a third as $Z = (X + Y) / 2$.
 
 \begin{minted}{c++}
+  // For more details on the Armadillo API, see
+  // https://arma.sourceforge.net/docs.html.
   arma::mat X(100, 50, arma::fill::randu);
   arma::mat Y(100, 50, arma::fill::randu);
   arma::mat Z = (X + Y) / 2;
@@ -416,6 +421,11 @@ we can use the following code.
 The {\small \tt d.Classify()} function could then be used to
 predict the class of a new data point
 using the trained decision tree.
+There are also a number of hyperparameters that control the
+tree-building procedure
+that can be specified in the constructor,
+as well as other methods that can be used to
+inspect or use the tree in other ways.
 
 Other algorithms in mlpack follow a very similar
 construct-train-use paradigm,
