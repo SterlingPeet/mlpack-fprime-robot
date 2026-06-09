@@ -40,6 +40,8 @@
 \usepackage{indentfirst}
 \usepackage{url}
 \usepackage{minted}
+\usepackage[pdf]{graphviz}
+\usepackage{tikz}
 \newenvironment{Figure}
   {\par\medskip\noindent\minipage{\linewidth}}
   {\endminipage\par\medskip}
@@ -49,6 +51,11 @@
 \fancyhead{} 
 \renewcommand{\footrulewidth}{1pt}
 \renewcommand{\headrulewidth}{0pt}
+
+\usetikzlibrary{backgrounds,fadings}
+\tikzfading[name=fadeout,
+            inner color=transparent!0,
+            outer color=transparent!100]
 
 % Input the author name for the footer:
 \lfoot{Curtin et al.}
@@ -546,7 +553,188 @@ is interpreted as corresponding to the explorer working as desired.
 
 \section{ARCHITECTURE}
 
+In order to support the three modes of operation desired for our robotic explorer,
+we architect F-Prime components as shown in Figure~\ref{fig:arch}.
+Each component already provided by F-Prime is printed in green,
+and components developed specifically for our mission requirements are in yellow.
+A description of each component's responsibilities is below:
+
+\begin{figure*}[t]
+\digraph{arch}{
+  ranksep=1.0;
+
+  {
+    rank=same;
+
+    cmd [fillcolor=chartreuse4 shape=rect label="cmdDisp" style=filled fontsize=10 fixedsize=true width=1.1];
+    blank2 [label="" shape=plaintext width=2.0]
+    prm [fillcolor=chartreuse4 shape=rect label="Prm DB" style=filled fontsize=10 fixedsize=true width=1.1];
+  }
+
+  {
+    rank=same;
+
+    con [fillcolor=darkgoldenrod3 shape=rect label="Ctrl" style=filled fontsize=10 width=0.7];
+    mot [fillcolor=darkgoldenrod3 shape=rect label="MtrCtrl" style=filled fontsize=10 width=0.7];
+    kde [fillcolor=darkgoldenrod3 shape=rect label="AnomDet" style=filled fontsize=10 width=0.7];
+    rhw [fillcolor=darkgoldenrod3 shape=rect label="HWDrv" style=filled fontsize=10 width=0.7];
+    rim [fillcolor=darkgoldenrod3 shape=rect label="IMUSen" style=filled fontsize=10 width=0.7];
+    i2c [fillcolor=darkgoldenrod3 shape=rect label="I2CDrv" style=filled fontsize=10 width=0.7];
+  }
+
+  {
+    rank=same;
+
+    tlms [fillcolor=darkgoldenrod3 shape=rect label="TlmSplit" style=filled fontsize=10 fixedsize=true width=1.2];
+    blank [label="" shape=plaintext width=0.3];
+    tlm [fillcolor=chartreuse4 shape=rect label="TlmChan" style=filled fontsize=10 fixedsize=true width=1.1];
+    event [fillcolor=chartreuse4 shape=rect label="Event" style=filled fontsize=10 fixedsize=true width=1.1];
+  }
+
+  cmd -> blank2 [style=invis];
+  blank2 -> prm [style=invis];
+  tlms -> blank [style=invis];
+  tlm -> event [style=invis];
+
+  cmd -> con;
+  cmd -> prm;
+  cmd -> mot;
+  cmd -> kde;
+  cmd -> rhw;
+  cmd -> rim;
+  cmd -> i2c;
+
+  con -> mot;
+  mot -> kde;
+  kde -> rhw;
+  mot -> rhw;
+  mot -> rim;
+  rhw -> i2c;
+
+  con -> tlms;
+  mot -> tlms;
+  kde -> tlms;
+  rhw -> tlms;
+  rim -> tlms;
+
+  tlms -> tlm;
+  tlms -> kde;
+  i2c -> tlm;
+
+  con -> prm;
+  mot -> prm;
+  kde -> prm;
+  rhw -> prm;
+  rim -> prm;
+  i2c -> prm;
+
+  con -> event;
+  mot -> event;
+  kde -> event;
+  rhw -> event;
+  rim -> event;
+  i2c -> event;
+}
+\vspace*{-5em}
+\captionof{figure}{F-Prime component topology for our robotic explorer.}
+\label{fig:arch}
+\end{figure*}
+
+% TODO: some of these still need descriptions!
+\begin{itemize}
+  \item {\bf cmdDisp}: 
+  \item {\bf Prm DB}:
+  \item {\bf Ctrl}: overall control; issues commands to put the explorer in one of the three operating modes.
+  \item {\bf MtrCtrl}: motor control; sets the motor speeds and computes odometry
+  \item {\bf AnomDet}: density-estimation anomaly detector implemented with mlpack; receives telemetry from TlmSplit
+  \item {\bf HWDrv}: Romi hardware driver; issues hardware commands via I2c to I2CDrv
+  \item {\bf IMUSen}: Romi IMU sensor driver; issues hardware commands via I2c to I2CDrv
+  \item {\bf I2CDrv}: low-level I2C driver
+  \item {\bf TlmSplit}: telemetry splitter; routes all telemetry {\em both} to default TlmChan and also AnomDet
+  \item {\bf TlmChan}: telemetry collector
+  \item {\bf Event}: event bus
+\end{itemize}
+
+Note that because F-Prime restricts outputs from components to be routed to only one destination component,
+we implemented a telemetry splitter (TlmSplit)
+with one input port for input telemetry
+and two output ports.
+This allows us to duplicate all telemetry to both the default F-Prime telemetry system
+and our custom anomaly detector.
+
 \section{ANOMALY DETECTION}
+
+Historically,
+anomaly detection was performed on spacecraft via
+simple thresholds applied to telemetry values~\cite{fuertes2016improving}.
+However, this simple approach suffers from many false positives,
+needs tedious and error-prone tuning of the thresholds,
+and cannot easily detect situations where each individual telemetry value
+is within tolerance, but combinations of values indicate a malfunction.
+(Consider, as we will later, the trivial case of a wheel's rate of motion
+not matching the power applied to it.)
+
+Of course,
+more recent efforts have used far more complex techniques to detect anomalies,
+including
+LSTMs (neural networks)~\cite{hundman2018detecting},
+convolutional neural networks~\cite{liu2023spacecraft},
+and kernel methods~\cite{fujimaki2005approach},
+to name a few.
+Of note is that the majority of these efforts are applying machine learning on the ground,
+instead of directly on the spacecraft.
+
+With F-Prime and mlpack,
+each of the techniques referenced above (and many more)
+can be deployed and run directly on the spacecraft,
+presuming that the spacecraft has the computational power necessary to run the technique.
+For `traditional' machine learning techniques like a decision tree this is not generally a problem,
+but neural-network based approaches such as LSTMs
+can have much higher computational requirements,
+depending on the size of the network being used.
+
+Because our efforts here are to demonstrate a working prototype,
+we opt to keep our machine learning simple and easy to understand.
+We will use a kernel density estimation (KDE) approach to
+model the probability density of observed telemetry states.
+Then, the anomaly detection system will
+compute the probability of the current telemetry state,
+and if that probability is exceedingly low,
+then the system concludes that we are in an anomalous state
+and emits an audible error tone via the buzzer.
+
+This approach is best described visually,
+as in Figure~\ref{fig:kde}.
+Due to the limitations of the medium,
+the figure can only show the density estimate in two dimensions;
+however, as we are receiving numerous channels of telemetry from various components,
+our density estimator as implemented uses 31 dimensions of telemetry.
+As this is a demonstration,
+we manually tune the density limit used to classify as an anomaly.
+In a real-world application that used this approach,
+the density should be tuned by collecting large amounts of non-anomalous data
+and building an accurate model of the distribution.
+
+\begin{figure*}
+\begin{center}
+\input{kde.tex}
+\end{center}
+\vspace*{-0.5em}
+\captionof{figure}{Kernel density estimation.
+The observed telemetry points (blue) are used to model the distribution (also blue)
+via convolution with a Gaussian kernel.
+Then, new telemetry points are compared with the distribution (red).
+Point $q_2$ is outside the distribution and may be considered an anomaly.}
+\label{fig:kde}
+\end{figure*}
+
+Implementationally speaking,
+mlpack's {\small \tt KDE} class is used to model the distribution.
+Internally, mlpack uses tree-based algorithms~\cite{gray2003nonparametric}
+to provide an efficient estimate of the density for a given telemetry point.
+To keep the tree small on a low-resource spacecraft,
+we use a configurable moving window of historical telemetry
+to model the probability density.
 
 \section{EXPERIMENTS}
 

@@ -1,0 +1,26 @@
+\begin{tikzpicture}[scale=1.6]
+
+  \draw[->,thick] (-0.3,0) -- (6,0);
+  \draw[->,thick] (0,-0.3) -- (0,4);
+
+  \begin{scope}[on background layer]
+    \foreach \p in {(2.2,2.0), (3.0,2.8), (2.6,1.4), (3.6,1.8)} {
+      \shade[shading=radial,
+             inner color=blue!80,
+             outer color=blue!80,
+             opacity=0.60,
+             path fading=fadeout]
+        \p circle (1.4);
+    }
+  \end{scope}
+
+  \foreach \p in {(2.2,2.0), (3.0,2.8), (2.6,1.4), (3.6,1.8)}
+    \fill[blue] \p circle (2.5pt);
+
+  \fill[red] (2.9,2.1) circle (2.5pt);
+  \node[black,anchor=south west] at (2.95,2.15) {\small $q_1$ (high density)};
+
+  \fill[red] (5.0,3.0) circle (2.5pt);
+  \node[black,anchor=south west] at (5.05,3.05) {\small $q_2$ (low density)};
+
+\end{tikzpicture}
