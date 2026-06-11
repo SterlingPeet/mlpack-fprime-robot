@@ -74,6 +74,14 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
                                    U32 cmdSeq            //!< The command sequence number
                                    ) override;
 
+    // NOTE: these commands are only really for testing!
+    //
+    // So it would be very easy as a user to get the component into a really
+    // weird state.
+    //
+    // My advice is: don't do weird things.  And probably don't actually use
+    // this component on a real spacecraft.  Or at least improve the code first.
+
     //! Handler implementation for command SPIN_MOTOR_SWEEP
     //!
     //! Start a sweep of motors controlled in a pattern that will make the robot
@@ -81,6 +89,14 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
     void SPIN_MOTOR_SWEEP_cmdHandler(FwOpcodeType opCode,  //!< The opcode
                                      U32 cmdSeq            //!< The command sequence number
                                      ) override;
+
+    //! Handler implementation for command FORWARD_BACKWARD_MOTOR_SWEEP
+    //!
+    //! Start a sweep of motors controlled in a pattern that will make the robot
+    //! spin.  Any current sweep is reset.
+    void FORWARD_BACKWARD_MOTOR_SWEEP_cmdHandler(FwOpcodeType opCode,  //!< The opcode
+                                                 U32 cmdSeq            //!< The command sequence number
+                                                 ) override;
 
     // ----------------------------------------------------------------------
     // Private helpers
@@ -126,6 +142,8 @@ class MotorCntrlManager : public MotorCntrlManagerComponentBase {
 
     //! Whether we are performing a spinning motor sweep right now.
     bool m_spinMotorSweep;
+    //! Whether we are performing a forward/backward motor sweep right now.
+    bool m_fbMotorSweep;
     //! Current target speed of left wheel for spinning motor sweep.
     I16 m_sweepLeftSpeed;
     //! Current target speed of right wheel for spinning motor sweep.
