@@ -42,6 +42,8 @@
 \usepackage{minted}
 \usepackage[pdf]{graphviz}
 \usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
 \newenvironment{Figure}
   {\par\medskip\noindent\minipage{\linewidth}}
   {\endminipage\par\medskip}
@@ -51,6 +53,8 @@
 \fancyhead{} 
 \renewcommand{\footrulewidth}{1pt}
 \renewcommand{\headrulewidth}{0pt}
+
+\pgfplotsset{compat=1.18}
 
 \usetikzlibrary{backgrounds,fadings}
 \tikzfading[name=fadeout,
@@ -458,6 +462,9 @@ controlled by a Raspberry Pi via an I2c connection;
 in our case, we used a Raspberry Pi 3B+
 which contains a Cortex-A53 processor at 1.4 GHz
 and 1GB of RAM.
+F-Prime (and the machine learning anomaly detector) runs on the Raspberry Pi,
+and components in the topology interact with the ATMega32U4
+via I2c.
 
 \begin{Figure}
 \begin{center}
@@ -664,6 +671,19 @@ and our custom anomaly detector.
 
 \section{ANOMALY DETECTION}
 
+\begin{figure*}[t]
+\begin{center}
+\input{kde.tex}
+\end{center}
+\vspace*{-0.5em}
+\captionof{figure}{Kernel density estimation.
+The observed telemetry points (blue) are used to model the distribution (also blue)
+via convolution with a Gaussian kernel.
+Then, new telemetry points are compared with the distribution (red).
+Point $q_2$ is outside the distribution and may be considered an anomaly.}
+\label{fig:kde}
+\end{figure*}
+
 Historically,
 anomaly detection was performed on spacecraft via
 simple thresholds applied to telemetry values~\cite{fuertes2016improving}.
@@ -715,17 +735,64 @@ In a real-world application that used this approach,
 the density should be tuned by collecting large amounts of non-anomalous data
 and building an accurate model of the distribution.
 
-\begin{figure*}
+% Needs to be way up high to get into the right place.
+\begin{figure*}[t]
 \begin{center}
-\input{kde.tex}
+\begin{tikzpicture}
+\begin{axis}
+  [
+  width=\textwidth,
+  height=0.2\textwidth,
+  title=CPU utilization,
+  axis y line=left,
+  axis x line=bottom,
+  xticklabel=\empty
+  ]
+  \addplot
+      [
+        no markers,
+        color=blue
+      ]
+      table
+      [
+        x=row,
+        y=cpu00,
+        col sep=comma
+      ]
+      {data/stationary_short.csv};
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}
+\begin{axis}
+  [
+  width=\textwidth,
+  height=0.2\textwidth,
+  title=Log-density estimate,
+  axis y line=left,
+  axis x line=bottom,
+  xlabel=Time (s)
+  ]
+  \addplot
+      [
+        no markers,
+        color=red
+      ]
+      table
+      [
+        x=row,
+        y=logdensityestimate,
+        col sep=comma
+      ]
+      {data/stationary_short.csv};
+\end{axis}
+\end{tikzpicture}
 \end{center}
-\vspace*{-0.5em}
-\captionof{figure}{Kernel density estimation.
-The observed telemetry points (blue) are used to model the distribution (also blue)
-via convolution with a Gaussian kernel.
-Then, new telemetry points are compared with the distribution (red).
-Point $q_2$ is outside the distribution and may be considered an anomaly.}
-\label{fig:kde}
+\vspace*{-1.5em}
+\captionof{figure}{CPU telemetry over time for stationary operation and
+log-density estimates for anomaly detector.
+Both manual anomalies were easily detected,
+when the log-density estimate dropped noticeably for more than five seconds.}
+\label{fig:stationary_telem}
 \end{figure*}
 
 Implementationally speaking,
@@ -738,15 +805,53 @@ to model the probability density.
 
 \section{EXPERIMENTS}
 
-The basic plan for experiments is this:
+In order to validate our approach,
+we cross-compiled and deployed our F-Prime flight software stack
+on the rover
+and did a series of real-world experiments,
+verifying that the anomaly detection system
+worked successfully in each anomalous situation we created.
+
+\subsection{Stationary Operation}
+
+As a first test of the system,
+we trained the density estimate
+on $10$k samples of data
+where the robot was entirely stationary
+and receiving no commands.
+During this time,
+because the robot was idle,
+all motor and odometry sensors read zero
+and CPU usage was minimal.
+
+Once the density estimate was trained,
+we observed the system functioning without spurious anomaly detections for
+a few hours.
+(Our implementation performs anomaly checks at $1$ Hz.)
+Then, we twice launched computationally intensive tasks
+on the Raspberry Pi.
+Each time we did this,
+the anomaly detection system easily detected the situation and emitted audible alerts,
+as expected.
+
+Telemetry for CPU1 utilization and the log-density estimate are shown in Figure~\ref{fig:stationary_telem}.
+The two anomalous situations are plainly obvious from the telemetry log;
+the log-density estimates drop significantly.
+An interesting observation is the robustness of the density estimator:
+because we trained it on a few hours of real-world telemetry data,
+the slightly higher CPU usage before the first anomaly is not itself detected as an anomaly,
+since this level of CPU usage was regularly seen during the training period,
+due to e.g. background system services running on the Raspberry Pi.
+
+\subsection{Straight-line Operation}
+
+
+\subsection{Spinning Operation}
+
+
+\subsubsection{Notes that haven't been filled in yet...}
 
 \begin{itemize}
-  \item First in `stationary' mode, detect unexpected use of CPU resources.
-    \subitem This is a really easy example.
-    \subitem In fact I even need to point out it could be done with just plain
-thresholding.
-    \subitem Show a plot of the density estimate over time.
-
   \item Next in `straight-line' mode, detect when the vehicle starts to turn.
     \subitem This example is more difficult and requires correlations between sensors.
     \subitem Again show a plot of density over time with anomalous regions highlighted.
