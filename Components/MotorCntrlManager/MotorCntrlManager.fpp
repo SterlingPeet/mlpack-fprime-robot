@@ -54,6 +54,9 @@ module ROMI {
     @ Run a full sweep of motor speeds for 5 seconds each.  Motors are set in reversed directions.  Total test will take 3000 seconds (50 minutes).
     async command SPIN_MOTOR_SWEEP opcode 3
 
+    @ Run a sweep of forward/backward motor speeds for 5 seconds each.  Motors are set in reversed directions.  Total test will take 1500 seconds (25 minutes).
+    async command FORWARD_BACKWARD_MOTOR_SWEEP opcode 4
+
     # ----------------------------------------------------------------------
     # Telemetry
     # ----------------------------------------------------------------------
@@ -107,6 +110,12 @@ module ROMI {
       severity activity high \
       id 0x02 \
       format "Starting spinning motor sweep"
+
+    @ Emitted when a spinning motor sweep is started.
+    event ForwardBackwardMotorSweep \
+      severity activity high \
+      id 0x03 \
+      format "Starting forward/backward motor sweep"
 
     # ----------------------------------------------------------------------
     # Standard AC Ports

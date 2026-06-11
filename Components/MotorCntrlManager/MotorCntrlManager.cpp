@@ -26,6 +26,7 @@ MotorCntrlManager::MotorCntrlManager(const char* const compName)
       m_lastRightOdo(0),
       m_lastOdoTime(getTime()),
       m_spinMotorSweep(false),
+      m_fbMotorSweep(false),
       m_sweepLeftSpeed(0),
       m_sweepRightSpeed(0),
       m_lastSweepUpdateTime(getTime()) {}
@@ -48,8 +49,7 @@ I16 MotorCntrlManager::computeDelta(I16 current, I16 previous) {
 
 void MotorCntrlManager::schedIn_handler(FwIndexType portNum, U32 context) {
     // Override the current commanded speed if we are doing a sweep.
-    if (m_spinMotorSweep)
-    {
+    if (m_spinMotorSweep || m_fbMotorSweep) {
         m_cmdLeft = m_sweepLeftSpeed;
         m_cmdRight = m_sweepRightSpeed;
         m_motorsEnabled = true;
@@ -74,8 +74,7 @@ void MotorCntrlManager::schedIn_handler(FwIndexType portNum, U32 context) {
     }
 
     // Update state of sweep if needed.
-    if (m_spinMotorSweep && m_lastSweepUpdateTime.getTimeBase() != 0)
-    {
+    if ((m_spinMotorSweep || m_fbMotorSweep) && m_lastSweepUpdateTime.getTimeBase() != 0) {
         Fw::Time currentTime = getTime();
         Fw::Time timeDiffObj = Fw::Time::sub(currentTime,
             m_lastSweepUpdateTime);
@@ -83,19 +82,36 @@ void MotorCntrlManager::schedIn_handler(FwIndexType portNum, U32 context) {
             timeDiffObj.getUSeconds() / 1000000.0f;
         if (timeDiff > 5.0 /* seconds */)
         {
-            --m_sweepLeftSpeed;
-            ++m_sweepRightSpeed;
             m_lastSweepUpdateTime = currentTime;
+            if (m_spinMotorSweep) {
+                --m_sweepLeftSpeed;
+                ++m_sweepRightSpeed;
 
-            // Are we done sweeping?
-            if (m_sweepLeftSpeed < -300)
-            {
-                m_sweepLeftSpeed = 0;
-                m_sweepRightSpeed = 0;
-                m_spinMotorSweep = false;
-                m_motorsEnabled = false;
-                m_cmdLeft = 0;
-                m_cmdRight = 0;
+                // Are we done sweeping?
+                if (m_sweepLeftSpeed < -300) {
+                    m_sweepLeftSpeed = 0;
+                    m_sweepRightSpeed = 0;
+                    m_spinMotorSweep = false;
+                    m_motorsEnabled = false;
+                    m_cmdLeft = 0;
+                    m_cmdRight = 0;
+                }
+            } else {
+                if (m_sweepLeftSpeed > 0) {
+                    m_sweepLeftSpeed = -(m_sweepLeftSpeed - 1);
+                    m_sweepRightSpeed = -(m_sweepRightSpeed - 1);
+                } else {
+                    m_sweepLeftSpeed = -m_sweepLeftSpeed;
+                    m_sweepRightSpeed = -m_sweepRightSpeed;
+                }
+
+                // Are we done sweeping?
+                if (m_sweepLeftSpeed == 0) {
+                    m_fbMotorSweep = false;
+                    m_motorsEnabled = false;
+                    m_cmdLeft = 0;
+                    m_cmdRight = 0;
+                }
             }
         }
     }
@@ -212,6 +228,16 @@ void MotorCntrlManager::SPIN_MOTOR_SWEEP_cmdHandler(FwOpcodeType opCode, U32 cmd
     m_sweepRightSpeed = -300;
 
     this->log_ACTIVITY_HI_SpinMotorSweep();
+    this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
+}
+
+void MotorCntrlManager::FORWARD_BACKWARD_MOTOR_SWEEP_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
+    m_fbMotorSweep = true;
+    m_motorsEnabled = true;
+    m_sweepLeftSpeed = -150;
+    m_sweepRightSpeed = -150;
+
+    this->log_ACTIVITY_HI_ForwardBackwardMotorSweep();
     this->cmdResponse_out(opCode, cmdSeq, Fw::CmdResponse::OK);
 }
 
