@@ -59,7 +59,7 @@ class KDEAnomalyDetector final : public KDEAnomalyDetectorComponentBase {
                                    ) override;
 
   private:
-    constexpr static const size_t numDims = 33;
+    constexpr static const size_t numDims = 28;
 
     //! The current version of the tree.
     mlpack::KDE<> kde;
