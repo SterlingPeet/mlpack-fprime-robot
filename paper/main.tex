@@ -54,12 +54,14 @@
 \renewcommand{\footrulewidth}{1pt}
 \renewcommand{\headrulewidth}{0pt}
 
-\pgfplotsset{compat=1.18}
+\pgfplotsset{compat=newest}
 
 \usetikzlibrary{backgrounds,fadings}
 \tikzfading[name=fadeout,
             inner color=transparent!0,
             outer color=transparent!100]
+
+\usetikzlibrary{arrows.meta}
 
 % Input the author name for the footer:
 \lfoot{Curtin et al.}
@@ -521,13 +523,12 @@ nor the internal environment (CPU usage)
 changes significantly.
 
   \item {\bf Straight-line}.  In this mode,
-the explorer is always moving forward or backward at either
-a low velocity or high velocity
-(but {\em not} an intermediate velocity or stopped).
+the explorer is always moving forward or backward at
+any low-to-medium velocity, or is stopped.
 It is expected that the measured rate of travel
 matches the controlled wheel speeds,
 and that the controlled and measured velocities
-are neither zero nor an intermediate speed.
+are not a high velocity.
 
   \item {\bf Spinning}.  In this mode,
 the explorer's left wheel speed is
@@ -746,7 +747,8 @@ and building an accurate model of the distribution.
   title=CPU utilization,
   axis y line=left,
   axis x line=bottom,
-  xticklabel=\empty
+  xticklabel=\empty,
+  ytick={0,50,100},
   ]
   \addplot
       [
@@ -770,7 +772,10 @@ and building an accurate model of the distribution.
   title=Log-density estimate,
   axis y line=left,
   axis x line=bottom,
-  xlabel=Time (s)
+  xlabel=Time (s),
+  ymin=-40,
+  ytick={-40,-20,0},
+  yticklabels={\ \ \ -40,-20,0} % spaces for alignment
   ]
   \addplot
       [
@@ -802,6 +807,11 @@ to provide an efficient estimate of the density for a given telemetry point.
 To keep the tree small on a low-resource spacecraft,
 we use a configurable moving window of historical telemetry
 to model the probability density.
+
+We tuned our density estimator to use
+a Gaussian kernel with bandwidth of $0.38$
+and used a simple threshold of $-20$ for the log-density estimate
+to identify an anomaly.
 
 \section{EXPERIMENTS}
 
@@ -843,30 +853,242 @@ the slightly higher CPU usage before the first anomaly is not itself detected as
 since this level of CPU usage was regularly seen during the training period,
 due to e.g. background system services running on the Raspberry Pi.
 
+\begin{figure*}[t!]
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}
+  [
+  width=\textwidth,
+  height=0.2\textwidth,
+  title=Target wheel speed,
+  axis y line=left,
+  axis x line=bottom,
+  xticklabel=\empty,
+  ymin=-300,
+  ymax=300,
+  ytick={-300,0,300},
+  yticklabels={-max,0,max}
+  ]
+  \addplot
+      [
+        no markers,
+        color=blue
+      ]
+      table
+      [
+        x=row,
+        y=left_speed,
+        col sep=comma
+      ]
+      {data/straight.csv};
+
+  \addplot
+      [
+        no markers,
+        color=blue
+      ]
+      table
+      [
+        x=row,
+        y=right_speed,
+        col sep=comma
+      ]
+      {data/straight.csv};
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}
+\begin{axis}
+  [
+  width=\textwidth,
+  height=0.2\textwidth,
+  title=Observed wheel velocity,
+  axis y line=left,
+  axis x line=bottom,
+  xticklabel=\empty,
+  ymin=-5000,
+  ymax=5000,
+  ytick={-5000,0,5000},
+  yticklabels={-max,0,max}
+  ]
+  \addplot
+      [
+        no markers,
+        color=green!60!black
+      ]
+      table
+      [
+        x=row,
+        y=left_velocity,
+        col sep=comma
+      ]
+      {data/straight.csv};
+
+  \addplot
+      [
+        no markers,
+        color=green!60!black
+      ]
+      table
+      [
+        x=row,
+        y=right_velocity,
+        col sep=comma
+      ]
+      {data/straight.csv};
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}
+\begin{axis}
+  [
+  width=\textwidth,
+  height=0.2\textwidth,
+  title=Z-axis acceleration,
+  axis y line=left,
+  axis x line=bottom,
+  xticklabel=\empty,
+  ytick={-1,0,1},
+  yticklabels={\ \ \ \ -1,0,1} % spacing for alignment
+  ]
+  \addplot
+      [
+        no markers,
+        color=brown
+      ]
+      table
+      [
+        x=row,
+        y=accel_z,
+        col sep=comma
+      ]
+      {data/straight.csv};
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}
+\begin{axis}
+  [
+  width=\textwidth,
+  height=0.2\textwidth,
+  title=Log-density estimate,
+  axis y line=left,
+  axis x line=bottom,
+  ymin=-50,
+  xticklabel=\empty,
+  ytick={-40,-20,0},
+  yticklabels={\ \ \!-40,-20,0} % spacing for alignment
+  ]
+  \addplot
+      [
+        no markers,
+        color=red
+      ]
+      table
+      [
+        x=row,
+        y=logdensityestimate,
+        col sep=comma
+      ]
+      {data/straight.csv};
+\end{axis}
+
+\draw [>-Stealth] (2.5, -0.3) -- (3.6, 0.5);
+\node [] at (2.5, -0.5) { speed too fast };
+
+\draw [>-Stealth] (6.0, -0.3) -- (7.3, 0.75);
+\node [] at (6.0, -0.5) { both wheels obstructed };
+
+\draw [>-Stealth] (8.5, -0.7) -- (8.75, 0.32);
+\node [] at (8.5, -0.9) { one wheel obstructed };
+
+\draw [>-Stealth] (9.5, -0.3) -- (10.1, 0.4);
+\node [] at (10.2, -0.5) { rover upside-down };
+
+\draw [>-Stealth] (12.4, -0.7) -- (12.4, 0.6);
+\node [] at (12.4, -0.9) { rover on one side };
+
+\draw [>-Stealth] (14.4, -0.3) -- (13.7, 0.6);
+\node [] at (14.4, -0.5) { rover in the air };
+\end{tikzpicture}
+\end{center}
+\captionof{figure}{Partial telemetry and log-density estimates for
+straight-line mode anomaly detection.
+We applied six different anomalies,
+each of which caused the log-density estimates to plummet.}
+\label{fig:straight_telem}
+\end{figure*}
+
+\begin{Figure}
+\begin{center}
+\includegraphics[width=\textwidth]{img/romi_anomaly.png}
+\end{center}
+\captionof{figure}{An anomalous situation the rover may encounter in straight-line operation.}
+\label{fig:straight_anomaly}
+\end{Figure}
+
 \subsection{Straight-line Operation}
 
+The next mode of operation we tested was straight-line operation.
+In this mode of operation,
+the rover is expected to be moving forward or backward at low-to-medium speeds.
+Because the density estimate is trained on `normal' telemetry,
+where `normal' is with respect to the mode of operation,
+we ran the rover in a clean environment with no obstructions or other problems
+for approximately 30 minutes.
+During this time,
+the rover's speed was set alternatingly to positive and negative speed values,
+eventually cycling through all accepted speed values.
+This process enables the density estimate to properly model
+all regions of the operating space.
+
+Once the training process was complete,
+we operated the rover in straight-line mode,
+setting a variety of different target wheel speeds
+over time.
+We also applied six different anomaly conditions:
+
+\begin{enumerate}
+  \itemsep -2pt
+  \item Setting the speed outside the operating region's bounds
+  \item Obstructing both wheels completely (no movement)
+  \item Obstructing only one wheel completely
+  \item Picking up the rover and turning it upside down
+  \item Picking up the rover and setting it on its side
+  \item Holding the rover in the air
+\end{enumerate}
+
+Figure~\ref{fig:straight_telem} shows the telemetry and density estimate
+over this period
+for a few of the numerous sensors that are connected to the density estimator.
+In each anomalous situation,
+the log-density estimate drops precipitiously,
+as expected.
+Note that the last anomaly (rover in the air)
+isn't clearly captured by the displayed sensors in the figure;
+other telemetry values going outside the norm caused the drop in the density.
 
 \subsection{Spinning Operation}
 
+Lastly, we tested the rover in the spinning mode of operation.
+Here, the rover is expected to be stationary but spinning at any speed.
+Like straight-line operation,
+we trained the density estimate by
+running the rover in a clean environment with no obstructions or other problems
+for roughly an hour.
+During this time,
+the rotational speed of the rover was swept through all possible values.
 
-\subsubsection{Notes that haven't been filled in yet...}
+Once the training process was complete,
+we operated the rover in spinning mode,
+both without anomalies and with anomalies.
+We applied TODO anomalies:
 
-\begin{itemize}
-  \item Next in `straight-line' mode, detect when the vehicle starts to turn.
-    \subitem This example is more difficult and requires correlations between sensors.
-    \subitem Again show a plot of density over time with anomalous regions highlighted.
-    \subitem The graph should also show wheel speeds.
-
-  \item Still in `straight-line' mode, detect when physical obstructions cause problems:
-    \subitem Half-on-carpet half-on-wood floor will likely result in turning even if the wheels are fine.
-    \subitem Running into a cat will result in an anomaly too.  Will the cat stay still?  Unclear.
-    \subitem Plots should be the same: motor, important sensors, density estimate.
-
-  \item Now in `spinning' mode, detect when a physical obstruction causes a problem.
-    \subitem Put a finger on one wheel.
-    \subitem Pick the robot up and put it on its side.
-    \subitem Again, plots should be the same.
-\end{itemize}
+\begin{enumerate}
+  \itemsep -2pt
+  \item Obstruct one wheel
+  \item Obstruct both wheels (no rotation)
+  \item Set the rover on its side
+  \item Cause wheels to have no contact with the ground (no rotation)
+  \item Run rover in straight-line mode
+\end{enumerate}
 
 Probably it makes sense for a few of these anomaly situations to include pictures of the anomaly we are applying, too.  Like e.g. a picture of the robot with a finger on the wheel; a picture of the robot interacting with a cat; a picture of the robot on its side.
 
