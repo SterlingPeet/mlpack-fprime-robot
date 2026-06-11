@@ -49,25 +49,25 @@ KDEAnomalyDetector ::KDEAnomalyDetector(const char* const compName)
 
     // ROMI::MotorCntrlManager
     // Base ID from 0x1000a000 comes from topology directly.
-    dimMap[0x1000a000] = 17;  // LeftOdometry (I32)
-    dimMap[0x1000a001] = 18;  // RightOdometry (I32)
-    dimMap[0x1000a002] = 19;  // MotorsEnabled (Fw.On)
-    dimMap[0x1000a003] = 20;  // LeftDelta (I16)
-    dimMap[0x1000a004] = 21;  // RightDelta (I16)
-    dimMap[0x1000a005] = 22;  // LeftVelocity (F32)
-    dimMap[0x1000a006] = 23;  // RightVelocity (F32)
-    dimMap[0x1000a007] = 24;  // LeftSpeed (I16)
-    dimMap[0x1000a008] = 25;  // RightSpeed (I16)
+    dimMap[0x1000a000] = size_t(-1);  // LeftOdometry (I32)
+    dimMap[0x1000a001] = size_t(-1);  // RightOdometry (I32)
+    dimMap[0x1000a002] = size_t(-1);  // MotorsEnabled (Fw.On)
+    dimMap[0x1000a003] = size_t(-1);  // LeftDelta (I16)
+    dimMap[0x1000a004] = size_t(-1);  // RightDelta (I16)
+    dimMap[0x1000a005] = 17;          // LeftVelocity (F32)
+    dimMap[0x1000a006] = 18;          // RightVelocity (F32)
+    dimMap[0x1000a007] = 19;          // LeftSpeed (I16)
+    dimMap[0x1000a008] = 20;          // RightSpeed (I16)
 
     // ROMI::RomiIMU
     // Base ID from 0x1000b000 comes from topology directly.
-    dimMap[0x1000b000] = 26;  // AccelX (F32)
-    dimMap[0x1000b001] = 27;  // AccelY (F32)
-    dimMap[0x1000b002] = 28;  // AccelZ (F32)
-    dimMap[0x1000b003] = 29;  // GyroX (F32)
-    dimMap[0x1000b004] = 30;  // GyroY (F32)
-    dimMap[0x1000b005] = 31;  // GyroZ (F32)
-    dimMap[0x1000b006] = 32;  // ImuTemp (F32)
+    dimMap[0x1000b000] = 21;  // AccelX (F32)
+    dimMap[0x1000b001] = 22;  // AccelY (F32)
+    dimMap[0x1000b002] = 23;  // AccelZ (F32)
+    dimMap[0x1000b003] = 24;  // GyroX (F32)
+    dimMap[0x1000b004] = 25;  // GyroY (F32)
+    dimMap[0x1000b005] = 26;  // GyroZ (F32)
+    dimMap[0x1000b006] = 27;  // ImuTemp (F32)
 
     dimTypes[0] = 1;   // F32 (CPU)
     dimTypes[1] = 1;   // F32 (CPU1)
@@ -86,22 +86,17 @@ KDEAnomalyDetector ::KDEAnomalyDetector(const char* const compName)
     dimTypes[14] = 1;  // F32 (CPU14)
     dimTypes[15] = 1;  // F32 (CPU15)
     dimTypes[16] = 1;  // F32 (BatteryVoltage)
-    dimTypes[17] = 2;  // I32 (LeftOdometry)
-    dimTypes[18] = 2;  // I32 (RightOdometry)
-    dimTypes[19] = 4;  // Fw::On (MotorsEnabled)
-    dimTypes[20] = 3;  // I16 (LeftDelta)
-    dimTypes[21] = 3;  // I16 (RightDelta)
-    dimTypes[22] = 1;  // F32 (LeftVelocity)
-    dimTypes[23] = 1;  // F32 (RightVelocity)
-    dimTypes[24] = 3;  // I16 (LeftSpeed)
-    dimTypes[25] = 3;  // I16 (RightSpeed)
-    dimTypes[26] = 1;  // F32 (AccelX)
-    dimTypes[27] = 1;  // F32 (AccelY)
-    dimTypes[28] = 1;  // F32 (AccelZ)
-    dimTypes[29] = 1;  // F32 (GyroX)
-    dimTypes[30] = 1;  // F32 (GyroY)
-    dimTypes[31] = 1;  // F32 (GyroZ)
-    dimTypes[32] = 1;  // F32 (ImuTemp)
+    dimTypes[17] = 1;  // F32 (LeftVelocity)
+    dimTypes[18] = 1;  // F32 (RightVelocity)
+    dimTypes[19] = 3;  // I16 (LeftSpeed)
+    dimTypes[20] = 3;  // I16 (RightSpeed)
+    dimTypes[21] = 1;  // F32 (AccelX)
+    dimTypes[22] = 1;  // F32 (AccelY)
+    dimTypes[23] = 1;  // F32 (AccelZ)
+    dimTypes[24] = 1;  // F32 (GyroX)
+    dimTypes[25] = 1;  // F32 (GyroY)
+    dimTypes[26] = 1;  // F32 (GyroZ)
+    dimTypes[27] = 1;  // F32 (ImuTemp)
 
     tlmCache.resize(this->numDims);
 }
@@ -361,6 +356,7 @@ void KDEAnomalyDetector ::RESET_cmdHandler(FwOpcodeType opCode, U32 cmdSeq) {
     const F32 datasetBuildTime = (F32)c.toc();
 
     c.tic();
+    this->kde.Kernel().Bandwidth(kernelBandwidth);
     this->kde.Train(std::move(dataset));
     const F32 treeBuildTime = (F32)c.toc();
 
