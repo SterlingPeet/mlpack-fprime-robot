@@ -31,7 +31,6 @@
 \usepackage{pgf}
 \usepackage{float}
 \usepackage{subcaption}
-\usepackage{cleveref}
 \usepackage{textcomp}
 \usepackage{pict2e}
 \usepackage{wasysym}
@@ -44,6 +43,13 @@
 \usepackage{tikz}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
+\usepackage{hyperref}
+\hypersetup{
+        colorlinks,
+        linkcolor={red!50!black},
+        citecolor={blue!50!black},
+        urlcolor={blue!80!black}
+}
 \newenvironment{Figure}
   {\par\medskip\noindent\minipage{\linewidth}}
   {\endminipage\par\medskip}
@@ -101,7 +107,7 @@
 \large % (12 point font)
 
 % Input the title: 
-\textbf{Lightweight open source on-spacecraft machine learning with mlpack and F-Prime}\\
+\textbf{Lightweight Open Source On-Spacecraft Machine Learning with mlpack and \\F Prime}\\
 \vspace{0.5cm}
 \normalsize % set to 10 point font
 
@@ -151,16 +157,16 @@ including the mlpack machine learning library
 and Armadillo linear algebra library,
 we provide the first implementation of a
 working on-spacecraft machine learning anomaly detection system
-inside the F-Prime flight software framework
+inside the F Prime flight software framework
 that successfully detects non-trivial anomalous events
 by using a kernel density estimate on telemetry data.
-Our prototype is validated on physical hardware,
+Our prototype is validated on real hardware,
 where we physically created several anomalous situations
 that were all successfully detected.
 The code is available publicly on Github
 and can be used as a reference project for deploying
 any complex machine learning pipeline
-to a spacecraft via the F-Prime framework.
+to a spacecraft via the F Prime framework.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,21 +183,21 @@ Modern spaceflight missions
 produce massive amounts of data.
 NASA missions are now generating over 100~TB of data each day~\cite{lee2021nasa},
 and this presents a significant challenge for data processing.
-Increasingly, a solution to this problem is
+Rather than downlinking the data for ground-based processing, many are turning to 
 direct on-board machine learning
-to process the data
-(as opposed to downlinking the data for ground-based processing)~\cite{henriquez2016high, habib2022artificial, cody2017application}.
-But the computational resources available on
+to process the data~\cite{henriquez2016high, habib2022artificial, cody2017application}.
+The limited computational resources available on
 low-power satellites, such as CubeSats~\cite{poghosyan2017cubesat}
 and other similar craft such as extraplanetary rovers
-are quite limited.
+pose challenges to complex on-board processing.
 
-Often, the computational platforms of satellites can be somewhat esoteric.
+Due to the focus on flight heritage for the space applications,
+the chosen computational platforms of satellites can be somewhat esoteric.
 Although ARM-based platforms are likely the most common,
 with use in missions like SpaceCube~\cite{brewer2020nasa} and DODONA~\cite{mae2022dorbit},
 legacy platforms are also in wide usage.
 For instance, the ArgoMoon mission~\cite{lombardo2022design}
-and Roman Space Telescope~\cite{goodwill2021nasa} use SPARC processor.
+and Roman Space Telescope~\cite{goodwill2021nasa} use SPARC processors.
 The common BAE RAD750~\cite{berger2001rad750} is a PowerPC processor and
 is used on the Perserverance and Curiosity rovers~\cite{goodwill2021nasa}.
 Even platforms like MIPS are in use on missions like New Horizons~\cite{kusnierkiewicz2005description}.
@@ -200,19 +206,22 @@ A further constraint on spaceflight computing systems is
 the flight software framework being used to control them.
 Two common choices,
 both supported by NASA,
-are F-Prime~\cite{bocchino2018f}
+are F Prime~\cite{bocchino2018f}
 and core Flight System (cFS)~\cite{mccomas2012nasa}.
 cFS is written in C,
 adhering to the C99 standard.
 Although this allows for precise programmer control in an embedded context,
 it makes interoperability with non-C99 toolkits difficult.
-For similar reasons, F-Prime is written in C++,
+For similar reasons, F Prime is written in C++,
 targeting the C++11 standard or newer.
-This choice comes with the same interoperability difficulties.
+The interoperability situation is better for C++,
+but can still present some challenges.
+Due to limited computational resources, and to reduce complexity,
+it is often best to keep all computation directly in the language of the flight software toolkit.
 
 This variety of computing platforms,
 the general lack of computing resources present on them,
-as well as the language limitations imposed by cFS and F-Prime
+as well as the language limitations imposed by cFS and F Prime
 present a huge barrier to
 practitioners wishing to perform machine learning directly on a spacecraft.
 Most widely-used machine learning software packages,
@@ -236,6 +245,9 @@ limited functionality,
 and cannot be deployed on other hardware.
 Worse, vendor-supplied toolkits are often arbitrarily EOL'ed,
 as in the case of several Qualcomm and Intel toolkits.
+Another barrier encountered with these tools is complexity:
+software running on-spacecraft is expected to be
+highly reliable, stable, and maintainable.
 
 Yet there exists a widely-used
 native C++ scientific computing ecosystem,
@@ -251,54 +263,57 @@ including for other on-board spaceflight applications~\cite{hackett2017implement
 
 In this paper,
 we put both of these pieces together to solve the problem:
-we demonstrate that mlpack can be easily used inside of F-Prime
+we demonstrate that mlpack can be easily used inside of F Prime
 to build a lightweight machine learning anomaly detector
 that runs directly on-board the spacecraft
 without the need for ground-based intervention.
 Following Peet~et~al.~\cite{peet2024framework},
-we deployed our solution to a Pololu Romi robot,
+we deployed our solution to a Pololu Romi robot~\cite{PololuRomi},
 which serves as a surrogate of a small satellite or extraplanetary rover.
 Our anomaly detector framework was able to successfully detect
 a number of complex anomalous situations
-that are not trivially detected with,
+that are not trivially detected with simple methods,
 e.g., thresholding.
 
-Although our purposes here are to detect telemetry anomalies,
+Although our purpose here is to detect telemetry anomalies,
 our solution can be trivially adapted to other common on-board machine learning tasks,
 such as computer vision and image classification~\cite{giuffrida2021varphi,leon2023accelerating},
 health monitoring~\cite{volponi2008enhanced},
 and other tasks.
 Our code is publicly available for use and adaptation at
-\url{https://github.com/SterlingPeet/mlpack-FPrime-robot},
-licensed under the TODO license~\cite{}.
+\href{https://github.com/SterlingPeet/mlpack-fprime-robot}{\footnotesize \tt https://github.com/SterlingPeet/mlpack-fprime-robot},
+licensed under the Apache license, version 2~\cite{apache2license}.
+\vspace*{0.5em}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{SOFTWARE OVERVIEW}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\vspace*{-0.3em}
 Our flight control software is implemented in C++ as
-an F-Prime deployment
+an F Prime deployment
 that internally uses mlpack's
 kernel density estimation technique
 for its anomaly detection functionality.
 
-\subsection{F-Prime}
+\subsection{F Prime}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\vspace*{-0.3em}
 As mentioned earlier,
-F-Prime is a modular flight software framework
+F Prime is a modular flight software framework
 emphasizing the reusability of individual parts of software across different missions.
-In F-Prime,
-each part of the mission is
+In F Prime,
+each part of the flight software is
 decomposed into discrete {\it Components}
 with well-defined interfaces;
 these serve as the fundamental building blocks
 for the mission software.
 
-A single mission consists of a number of components
+A single software executable consists of a number of components
 connected in a specific way,
 called a {\it deployment}.
-Each F-Prime component's interface is defined as a
+Each F Prime component's interface is defined as a
 number of input and output ports,
 which are defined and connected to other components.
 This interface and connections are specified in the
@@ -308,32 +323,30 @@ the {\small \tt Svc.SystemResources} component,
 which monitors the state of the computing environment
 (e.g. RAM usage, CPU utilization),
 typically outputs its telemetry via an Fpp connection
-to the mission telemetry service,
-which will report the telemetry to the ground control systems.
+to the mission telemetry service for relay to ground control systems.
 
-The F-Prime framework handles all of the communication between components,
+The F Prime framework encapsulates all of the communication between components,
 and provides numerous default components and deployments.
 This means that for a user,
 implementing the mission software stack
-typically means taking several F-Prime-supplied off-the-shelf components
+typically means taking several F Prime-supplied off-the-shelf components
 and connecting them with a few custom components
 implemented specifically for the mission.
 
 Once the components are implemented
 and the connections in the deployment are defined,
-an F-Prime deployment can easily be cross-compiled to any target platform,
+an F Prime deployment can easily be cross-compiled to any target platform,
 including traditional platforms like VxWorks on the RAD750,
 and newer platforms like ARM systems running lightweight Linux distributions
 (for instance, a Raspberry Pi).
 
 Compilation and configuration is handled via
 CMake, which is likely the most widely-used C++ build system generator.
-F-Prime automatically generates the CMake configuration
+F Prime automatically generates the CMake configuration
 based on the deployment topology.
-A user who has implemented their flight software with F-Prime
+A user who has implemented their flight software with F Prime
 can typically build and run it with a few simple commands
-via the use of the helper {\small \tt fprime-util} and {\small \tt fprime-gds}
-programs:
+via the use of the helper programs {\small \tt fprime-util} and {\small \tt fprime-gds}:
 
 \begin{minted}{bash}
   # automatically configure CMake
@@ -347,13 +360,14 @@ programs:
   $ fprime-gds
 \end{minted}
 
-F-Prime deployments can work even on very resource-constrained hardware;
+F Prime deployments can work even on very resource-constrained hardware;
 for instance,
 it has been successfully used with program memory size as small as 128 kB
-and RAM as small as 64 kB~\cite{}.
+and RAM as small as 64 kB~\cite{Kolhof2021,Cheek2021}.
 
-Further resources on F-Prime can be found
-in the original F-Prime paper~\cite{bocchino2018f},
+Further resources on F Prime can be found
+in the original F Prime paper~\cite{bocchino2018f}
+and website~\cite{fprimewebsite},
 and more details related to our deployment topology can be found
 in the previous work of Peet et~al.~\cite{peet2024framework},
 whose work we have used as a starting point.
@@ -420,14 +434,12 @@ we can use the following code.
 \begin{minted}{c++}
   // This matrix holds the predictors.
   arma::mat X;
-  // This vector holds the labels
+  // This vector holds the labels.
   arma::Row<size_t> Y;
 
   // Create the decision tree, optionally
   // specifying parameters.
   mlpack::DecisionTree d(/* ... */);
-
-  // Train the decision tree.
   d.Train(X, Y);
 \end{minted}
 
@@ -452,21 +464,50 @@ including tree-based density estimation techniques~\cite{gray2003nonparametric,r
 which is what we have chosen to use here
 for our on-spacecraft anomaly detector.
 
+It is worth noting that JPL F Prime coding conventions~\cite{jplstandards}
+explicitly disallow numerous C++ features
+including dynamic memory allocation after initialization.
+With mlpack and related tools,
+it is possible to meet each of these conventions
+but extra work may be required.
+For example, F Prime components that use Armadillo matrices
+could either use {\tt \small arma::mat::fixed<Rows, Cols>}
+to allocate a fixed-size matrix at compile time,
+or could call {\tt \small mat.set\_size(rows, cols)}
+at F Prime component construction time to perform dynamic allocation only once.
+Other approaches exist too,
+e.g., a custom allocated-once memory pool used during computation.
+mlpack offers a few compile-time controls to assist with this,
+including macros that allow disabling various parts of STL functionality.
+
 \section{HARDWARE OVERVIEW}
 
 Building on Peet et~al.~\cite{peet2024framework},
-we choose to use the inexpensive Pololu Romi robot
+we choose the inexpensive Pololu Romi robot~\cite{PololuRomi}
 (shown in Figure~\ref{fig:romi})
 as a robotic explorer platform
 due to its standard hardware:
 an ATMega32U4-based mainboard
-controlled by a Raspberry Pi via an I2c connection;
+controlled by a Raspberry Pi via an I\textsuperscript{2}C connection;
 in our case, we used a Raspberry Pi 3B+
 which contains a Cortex-A53 processor at 1.4 GHz
 and 1GB of RAM.
-F-Prime (and the machine learning anomaly detector) runs on the Raspberry Pi,
+F Prime (and the machine learning anomaly detector) runs on the Raspberry Pi,
 and components in the topology interact with the ATMega32U4
-via I2c.
+via I\textsuperscript{2}C.
+
+From a control perspective,
+the Romi contains two wheels with encoders for speed control,
+a speaker,
+and 3 LEDs (which we do not use for our work here).
+From a telemetry perspective,
+the following signals are available on the Romi
+and can be captured for F Prime telemetry:
+
+\begin{itemize}
+  \itemsep -2pt
+  \item Wheel turn counters (can be used for distance tracking)
+\end{itemize} % split to fit image
 
 \begin{Figure}
 \begin{center}
@@ -477,24 +518,15 @@ via I2c.
 \label{fig:romi}
 \end{Figure}
 
-From a control perspective,
-the Romi contains two wheels whose speeds are programmable,
-a speaker,
-and 3 LEDs (which we do not use for our work here).
-From a telemetry perspective,
-the following signals are available on the Romi
-and can be captured for F-Prime telemetry:
-
 \begin{itemize}
   \itemsep -2pt
-  \item Wheel turn counters (can be used for distance tracking)
   \item Acceleration sensors (x/y/z axis)
   \item Gyrometers (x/y/z)
   \item Ambient temperature
   \item Battery level
 \end{itemize}
 
-This is in addition to the default F-Prime telemetry
+This is in addition to the default F Prime telemetry
 running on the Raspberry Pi,
 which can track available memory, memory used,
 and CPU utilization percentages.
@@ -510,8 +542,7 @@ and its main processor architecture (ARM) is commonly used in COTS spaceflight a
 
 \section{OPERATING CONCEPT}
 
-The operating concept of our robotic explorer envisions three distinct operation
-settings:
+The operating concept of our robotic explorer envisions two distinct operating settings:
 
 \begin{itemize}
   \item {\bf Stationary}.  In this mode,
@@ -529,15 +560,6 @@ It is expected that the measured rate of travel
 matches the controlled wheel speeds,
 and that the controlled and measured velocities
 are not a high velocity.
-
-  \item {\bf Spinning}.  In this mode,
-the explorer's left wheel speed is
-equivalent to the right wheel speed,
-but in opposite directions,
-so the explorer is stationary but rotating.
-The rate of rotation can be arbitrary,
-but the explorer is expected to remain stationary
-and rotate at the rate given by the wheel speed.
 \end{itemize}
 
 During normal operation,
@@ -554,120 +576,169 @@ it is likely that either a louder speaker or
 some other non-acoustic anomaly reporting means would be desired.)
 
 Commands sent to the explorer
-can set it in any of these three modes,
+can set it in any of these two modes,
 and reset the anomaly detection system
 such that its recent collected telemetry
 is interpreted as corresponding to the explorer working as desired.
 
+% F Prime Architecture for MarsRobot
+\begin{Figure}
+    \centering
+    \begin{tikzpicture}[scale=0.7, every node/.style={rounded corners, draw=black}] % Adjust the scale factor as needed
+        % Define the colors
+        % \definecolor{yellow}{rgb}{1,1,0}
+        % \definecolor{green}{rgb}{0,1,0}
+        \definecolor{yellow}{HTML}{c4daf1}
+        % \definecolor{green}{HTML}{527267}
+        % \definecolor{green}{HTML}{252c3b} % dark?
+        \definecolor{green}{HTML}{3e68ae} % dark?
+        % \definecolor{green}{HTML}{b1b188}
+        
+        % Draw the green boxes with labels
+        % \node[fill=green, text=white] (PrmDB) at (-4,-4) {\shortstack{Prm \\ DB}};
+        \node[fill=green, text=white] (CmdDisp) at (-4,0) {\shortstack{Cmd \\ Disp}};
+        \node[fill=green, text=white] (Event) at (4,-4) {\shortstack{Tlm \\ Chan}};
+        \node[fill=yellow] (Telem) at (4,0) {\shortstack{Tlm \\ Split}};
+      
+        % Draw the yellow boxes with labels (center column)
+        \node[fill=green, text=white] (I2CDriver) at (0,-6) {\shortstack{I2cDrv}};
+        \node[fill=yellow] (RomiHWDriver) at (0,-2.5) {\shortstack{HW \\ Driver}};
+        \node[fill=yellow] (RomiIMU) at (2.25,-2.5) {\shortstack{IMU \\ Sen}};
+        \node[fill=yellow] (MotorCntrl) at (0,1) {\shortstack{Motor \\ Ctrl}};
+        % \node[fill=yellow] (PIDCntrl) at (0,3) {\shortstack{PID \\ Ctrl}};
+        \node[fill=yellow] (PathSegment) at (0,6) {\shortstack{Path \\ Mgr}};
+        \node[fill=yellow] (AnomDet) at (4,4) {\shortstack{Anom \\ Det}};
+      
+        % Draw the arrows between center column boxes
+        % \begin{scope}[transform canvas={xshift=0.7em}]
+        %     \draw[->,line width=0.5mm] (I2CDriver) -- (RomiHWDriver);
+        %     \draw[->,line width=0.5mm] (RomiHWDriver) -- (MotorCntrl);
+        %     \draw[->,line width=0.5mm] (MotorCntrl) -- (PIDCntrl);
+        %     \draw[->,line width=0.5mm] (PIDCntrl) -- (PathSegment);
+        % \end{scope}
+        
+        % \begin{scope}[transform canvas={xshift=-0.7em}]
+            \draw[->,line width=0.5mm] (RomiHWDriver) -- (I2CDriver);
+            \draw[->,line width=0.5mm] (RomiIMU) -- (I2CDriver);
+            \draw[->,line width=0.5mm] (MotorCntrl) -- (RomiHWDriver);
+            \draw[->,line width=0.5mm] (PathSegment) -- (MotorCntrl);
+            % \draw[->,line width=0.5mm] (PathSegment) -- (PIDCntrl);
+        % \end{scope}
+      
+        % Draw the arrows from Cmd Disp to each center column box
+        \draw[->,line width=0.5mm] (CmdDisp) -- (I2CDriver);
+        \draw[->,line width=0.5mm] (CmdDisp) -- (RomiHWDriver);
+        \draw[->,line width=0.5mm] (CmdDisp) -- (MotorCntrl);
+        % \draw[->,line width=0.5mm] (CmdDisp) -- (PIDCntrl);
+        \draw[->,line width=0.5mm] (CmdDisp) -- (PathSegment);
+      
+        % Draw the arrows from each center column box to Telem
+        %\draw[->,line width=0.5mm] (I2CDriver) -- (Telem);
+        \draw[->,line width=0.5mm] (RomiHWDriver) -- (Telem);
+        \draw[->,line width=0.5mm] (MotorCntrl) -- (Telem);
+        % \draw[->,line width=0.5mm] (PIDCntrl) -- (Telem);
+        \draw[->,line width=0.5mm] (PathSegment) -- (Telem);
+        \draw[->,line width=0.5mm] (RomiIMU) -- (Telem);
+
+        \draw[->,line width=0.5mm] (Telem) -- (Event);
+        \draw[->,line width=0.5mm] (Telem) -- (AnomDet);
+        %\draw[->,line width=0.5mm] (AnomDet) -- (Event);
+      
+        % % Draw the arrows from each center column box to Event
+        \draw[->,line width=0.5mm] (I2CDriver) -- (Event);
+        % \draw[->,line width=0.5mm] (RomiHWDriver) -- (Event);
+        % \draw[->,line width=0.5mm] (MotorCntrl) -- (Event);
+        % \draw[->,line width=0.5mm] (PIDCntrl) -- (Event);
+        % \draw[->,line width=0.5mm] (PathSegment) -- (Event);
+      
+        % % Draw the arrow from Cmd Disp to PrmDB
+        % \draw[->,line width=0.5mm] (CmdDisp) -- (PrmDB);
+      
+       %  % Draw the arrows from each center column box to PrmDB
+       %  \draw[->,line width=0.5mm] (I2CDriver) -- (PrmDB);
+       %  \draw[->,line width=0.5mm] (RomiHWDriver) -- (PrmDB);
+       %  \draw[->,line width=0.5mm] (MotorCntrl) -- (PrmDB);
+       % . \draw[->,line width=0.5mm] (PIDCntrl) -- (PrmDB);
+       %  \draw[->,line width=0.5mm] (PathSegment) -- (PrmDB);
+      
+    \end{tikzpicture}
+    \captionof{figure}{F$^\prime$ architecture for our robotic explorer.}
+    \label{fig:arch}
+\end{Figure}
+
+% \begin{figure*}[t]
+% \digraph{arch}{
+%   ranksep=1.0;
+
+%   {
+%     rank=same;
+
+%     con [fillcolor=darkgoldenrod3 shape=rect label="PathMgr" style=filled fontsize=10 width=0.7];
+%     mot [fillcolor=darkgoldenrod3 shape=rect label="MtrCtrl" style=filled fontsize=10 width=0.7];
+%     kde [fillcolor=darkgoldenrod3 shape=rect label="AnomDet" style=filled fontsize=10 width=0.7];
+%     rhw [fillcolor=darkgoldenrod3 shape=rect label="HWDrv" style=filled fontsize=10 width=0.7];
+%     rim [fillcolor=darkgoldenrod3 shape=rect label="IMUSen" style=filled fontsize=10 width=0.7];
+%     i2c [fillcolor=darkgoldenrod3 shape=rect label="I2cDrv" style=filled fontsize=10 width=0.7];
+%   }
+
+%   {
+%     rank=same;
+
+%     tlms [fillcolor=darkgoldenrod3 shape=rect label="TlmSplit" style=filled fontsize=10 fixedsize=true width=1.2];
+%     blank [label="" shape=plaintext width=0.3];
+%     tlm [fillcolor=chartreuse4 shape=rect label="TlmChan" style=filled fontsize=10 fixedsize=true width=1.1];
+%   }
+
+%   tlms -> blank [style=invis];
+  
+%   con -> mot;
+%   mot -> kde;
+%   kde -> rhw;
+%   mot -> rhw;
+%   mot -> rim;
+%   rhw -> i2c;
+
+%   con -> tlms;
+%   mot -> tlms;
+%   kde -> tlms;
+%   rhw -> tlms;
+%   rim -> tlms;
+
+%   tlms -> tlm;
+%   tlms -> kde;
+%   i2c -> tlm;
+% }
+% \vspace*{-5em}
+% \captionof{figure}{F Prime component topology for our robotic explorer.}
+% \label{fig:arch}
+% \end{figure*}
+
 \section{ARCHITECTURE}
 
-In order to support the three modes of operation desired for our robotic explorer,
-we architect F-Prime components as shown in Figure~\ref{fig:arch}.
-Each component already provided by F-Prime is printed in green,
-and components developed specifically for our mission requirements are in yellow.
+In order to support the two modes of operation desired for our robotic explorer,
+we architect F Prime components as shown in Figure~\ref{fig:arch}.
+Each component already provided by F Prime is printed in dark blue,
+while components developed specifically for our mission requirements are in light blue.
+A few less important connections between components are omitted for brevity.
 A description of each component's responsibilities is below:
-
-\begin{figure*}[t]
-\digraph{arch}{
-  ranksep=1.0;
-
-  {
-    rank=same;
-
-    cmd [fillcolor=chartreuse4 shape=rect label="cmdDisp" style=filled fontsize=10 fixedsize=true width=1.1];
-    blank2 [label="" shape=plaintext width=2.0]
-    prm [fillcolor=chartreuse4 shape=rect label="Prm DB" style=filled fontsize=10 fixedsize=true width=1.1];
-  }
-
-  {
-    rank=same;
-
-    con [fillcolor=darkgoldenrod3 shape=rect label="Ctrl" style=filled fontsize=10 width=0.7];
-    mot [fillcolor=darkgoldenrod3 shape=rect label="MtrCtrl" style=filled fontsize=10 width=0.7];
-    kde [fillcolor=darkgoldenrod3 shape=rect label="AnomDet" style=filled fontsize=10 width=0.7];
-    rhw [fillcolor=darkgoldenrod3 shape=rect label="HWDrv" style=filled fontsize=10 width=0.7];
-    rim [fillcolor=darkgoldenrod3 shape=rect label="IMUSen" style=filled fontsize=10 width=0.7];
-    i2c [fillcolor=darkgoldenrod3 shape=rect label="I2CDrv" style=filled fontsize=10 width=0.7];
-  }
-
-  {
-    rank=same;
-
-    tlms [fillcolor=darkgoldenrod3 shape=rect label="TlmSplit" style=filled fontsize=10 fixedsize=true width=1.2];
-    blank [label="" shape=plaintext width=0.3];
-    tlm [fillcolor=chartreuse4 shape=rect label="TlmChan" style=filled fontsize=10 fixedsize=true width=1.1];
-    event [fillcolor=chartreuse4 shape=rect label="Event" style=filled fontsize=10 fixedsize=true width=1.1];
-  }
-
-  cmd -> blank2 [style=invis];
-  blank2 -> prm [style=invis];
-  tlms -> blank [style=invis];
-  tlm -> event [style=invis];
-
-  cmd -> con;
-  cmd -> prm;
-  cmd -> mot;
-  cmd -> kde;
-  cmd -> rhw;
-  cmd -> rim;
-  cmd -> i2c;
-
-  con -> mot;
-  mot -> kde;
-  kde -> rhw;
-  mot -> rhw;
-  mot -> rim;
-  rhw -> i2c;
-
-  con -> tlms;
-  mot -> tlms;
-  kde -> tlms;
-  rhw -> tlms;
-  rim -> tlms;
-
-  tlms -> tlm;
-  tlms -> kde;
-  i2c -> tlm;
-
-  con -> prm;
-  mot -> prm;
-  kde -> prm;
-  rhw -> prm;
-  rim -> prm;
-  i2c -> prm;
-
-  con -> event;
-  mot -> event;
-  kde -> event;
-  rhw -> event;
-  rim -> event;
-  i2c -> event;
-}
-\vspace*{-5em}
-\captionof{figure}{F-Prime component topology for our robotic explorer.}
-\label{fig:arch}
-\end{figure*}
 
 % TODO: some of these still need descriptions!
 \begin{itemize}
-  \item {\bf cmdDisp}: 
-  \item {\bf Prm DB}:
-  \item {\bf Ctrl}: overall control; issues commands to put the explorer in one of the three operating modes.
-  \item {\bf MtrCtrl}: motor control; sets the motor speeds and computes odometry
-  \item {\bf AnomDet}: density-estimation anomaly detector implemented with mlpack; receives telemetry from TlmSplit
-  \item {\bf HWDrv}: Romi hardware driver; issues hardware commands via I2c to I2CDrv
-  \item {\bf IMUSen}: Romi IMU sensor driver; issues hardware commands via I2c to I2CDrv
-  \item {\bf I2CDrv}: low-level I2C driver
-  \item {\bf TlmSplit}: telemetry splitter; routes all telemetry {\em both} to default TlmChan and also AnomDet
-  \item {\bf TlmChan}: telemetry collector
-  \item {\bf Event}: event bus
+  \item {\bf CmdDisp}: dispatches incoming operator commands to the relevant components; included in F Prime.
+  \item {\bf PathMgr}: overall control; issues commands to put the explorer in one of the two path modes.
+  \item {\bf MotorCtrl}: motor control; sets the motor speeds and computes odometry.  \item {\bf AnomDet}: density-estimation anomaly detector implemented with mlpack; receives telemetry from TlmSplit.
+  \item {\bf HWDriver}: Romi hardware driver; issues hardware commands via I2cDrv to I\textsuperscript{2}C.
+  \item {\bf IMUSen}: Romi IMU sensor driver; issues hardware commands via I2cDrv to I\textsuperscript{2}C.
+  \item {\bf I2cDrv}: low-level I\textsuperscript{2}C driver included in F Prime.
+  \item {\bf TlmSplit}: telemetry splitter; routes all telemetry {\em both} to default TlmChan and also AnomDet.
+  \item {\bf TlmChan}: telemetry collector included in F Prime.
 \end{itemize}
 
-Note that because F-Prime restricts outputs from components to be routed to only one destination component,
+Note that because F Prime restricts outputs from components to be routed to only one destination component,
 we implemented a telemetry splitter (TlmSplit)
 with one input port for input telemetry
 and two output ports.
-This allows us to duplicate all telemetry to both the default F-Prime telemetry system
+This allows us to duplicate all telemetry to both the default F Prime telemetry system
 and our custom anomaly detector.
 
 \section{ANOMALY DETECTION}
@@ -705,7 +776,7 @@ to name a few.
 Of note is that the majority of these efforts are applying machine learning on the ground,
 instead of directly on the spacecraft.
 
-With F-Prime and mlpack,
+With F Prime and mlpack,
 each of the techniques referenced above (and many more)
 can be deployed and run directly on the spacecraft,
 presuming that the spacecraft has the computational power necessary to run the technique.
@@ -812,13 +883,20 @@ We tuned our density estimator to use
 a Gaussian kernel with bandwidth of $0.38$
 and used a simple threshold of $-20$ for the log-density estimate
 to identify an anomaly.
+A real-world application of this technique might
+cross-validate the bandwidth selection,
+and use labeled anomalies to tune the threshold;
+but for our purposes
+(a software deployment demonstration)
+we do not find that necessary.
 
 \section{EXPERIMENTS}
 
 In order to validate our approach,
-we cross-compiled and deployed our F-Prime flight software stack
+we cross-compiled and deployed our F Prime flight software stack
 on the rover
-and did a series of real-world experiments,
+(using {\small \tt fprime-util generate aarch64-linux} and {\small \tt fprime-util build aarch64-linux})
+and performed a series of real-world experiments,
 verifying that the anomaly detection system
 worked successfully in each anomalous situation we created.
 
@@ -843,6 +921,15 @@ on the Raspberry Pi.
 Each time we did this,
 the anomaly detection system easily detected the situation and emitted audible alerts,
 as expected.
+
+\begin{Figure}
+\begin{center}
+\includegraphics[width=0.92\textwidth]{img/romi_anomaly.png}
+\end{center}
+\vspace*{-1em}
+\captionof{figure}{An anomalous situation the rover may encounter in straight-line operation.}
+\label{fig:straight_anomaly}
+\end{Figure}
 
 Telemetry for CPU1 utilization and the log-density estimate are shown in Figure~\ref{fig:stationary_telem}.
 The two anomalous situations are plainly obvious from the telemetry log;
@@ -1009,20 +1096,13 @@ due to e.g. background system services running on the Raspberry Pi.
 \node [] at (14.4, -0.5) { rover in the air };
 \end{tikzpicture}
 \end{center}
+\vspace*{-1.0em}
 \captionof{figure}{Partial telemetry and log-density estimates for
 straight-line mode anomaly detection.
 We applied six different anomalies,
 each of which caused the log-density estimates to plummet.}
 \label{fig:straight_telem}
 \end{figure*}
-
-\begin{Figure}
-\begin{center}
-\includegraphics[width=\textwidth]{img/romi_anomaly.png}
-\end{center}
-\captionof{figure}{An anomalous situation the rover may encounter in straight-line operation.}
-\label{fig:straight_anomaly}
-\end{Figure}
 
 \subsection{Straight-line Operation}
 
@@ -1034,7 +1114,7 @@ where `normal' is with respect to the mode of operation,
 we ran the rover in a clean environment with no obstructions or other problems
 for approximately 30 minutes.
 During this time,
-the rover's speed was set alternatingly to positive and negative speed values,
+the rover's speed was set to alternating positive and negative speed values,
 eventually cycling through all accepted speed values.
 This process enables the density estimate to properly model
 all regions of the operating space.
@@ -1059,45 +1139,52 @@ Figure~\ref{fig:straight_telem} shows the telemetry and density estimate
 over this period
 for a few of the numerous sensors that are connected to the density estimator.
 In each anomalous situation,
-the log-density estimate drops precipitiously,
+the log-density estimate drops precipitously,
 as expected.
 Note that the last anomaly (rover in the air)
 isn't clearly captured by the displayed sensors in the figure;
 other telemetry values going outside the norm caused the drop in the density.
 
-\subsection{Spinning Operation}
-
-Lastly, we tested the rover in the spinning mode of operation.
-Here, the rover is expected to be stationary but spinning at any speed.
-Like straight-line operation,
-we trained the density estimate by
-running the rover in a clean environment with no obstructions or other problems
-for roughly an hour.
-During this time,
-the rotational speed of the rover was swept through all possible values.
-
-Once the training process was complete,
-we operated the rover in spinning mode,
-both without anomalies and with anomalies.
-We applied TODO anomalies:
-
-\begin{enumerate}
-  \itemsep -2pt
-  \item Obstruct one wheel
-  \item Obstruct both wheels (no rotation)
-  \item Set the rover on its side
-  \item Cause wheels to have no contact with the ground (no rotation)
-  \item Run rover in straight-line mode
-\end{enumerate}
-
-Probably it makes sense for a few of these anomaly situations to include pictures of the anomaly we are applying, too.  Like e.g. a picture of the robot with a finger on the wheel; a picture of the robot interacting with a cat; a picture of the robot on its side.
-
-Details will also be needed about precisely what the `training' of the density estimator involved.  For instance, for `spin' mode I cycle it through all possible wheel speed values for a while.
+Overall, these successful detections validate our approach.
+Although kernel density estimation is not the most powerful known anomaly detector,
+our aim was simply to demonstrate a working machine learning-based anomaly detection system
+that was capable of running directly on the spacecraft.
+Using more complex techniques is left as future work;
+for now, our publicly available code can be easily used as a starting point.
 
 \section{CONCLUSION}
 
-%\input{Instructions} %comment this line out before downloading PDF for submission
-%Input other body text sections here
+We have demonstrated an approach for on-spacecraft machine learning
+in a resource-efficient and simple way
+by pairing the F Prime flight software framework with
+the lightweight mlpack C++ machine learning library.
+The architecture of F Prime allows an easy way to
+isolate the machine learning functionality specifically in its own components,
+meaning that it is easy to drop in place into existing F Prime projects.
+
+In our experiments,
+we used a simple density estimator to detect anomalies
+and validated that the mlpack-based model was able to
+successfully run and detect anomalies
+on real-world low-resource hardware
+that might be used in spaceflight missions.
+
+Because mlpack and F Prime are both easy to cross-compile to
+any target architecture,
+it would be trivial to recompile our project
+for, e.g., SPARC64, MIPS, or PowerPC.
+
+Future work to deploy an approach like this to a real-world mission would include
+adapting parts of mlpack and Armadillo code to follow
+the JPL style guidelines~\cite{jplstandards},
+and implementing a more robust machine learning-based anomaly detection system.
+
+Our code is publicly available at
+\href{https://github.com/SterlingPeet/mlpack-fprime-robot}{\footnotesize \tt https://github.com/SterlingPeet/mlpack-fprime-robot}
+and is licensed under the Apache license, version 2.0.
+Telemetry logs of our experiments
+(and the source code for this paper)
+are all included in the repository.
 
 \end{multicols*}
 \bibliography{refs}
