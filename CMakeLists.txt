@@ -19,6 +19,8 @@ include("${CMAKE_CURRENT_LIST_DIR}/fprime/cmake/FPrime.cmake")
 # NOTE: register custom targets between these two lines
 fprime_setup_included_code()
 
+# TODO: upgrade to latest upstream version of mlpack.cmake; then,
+# SearchOpenBLAS.cmake can be removed.
 include("${CMAKE_CURRENT_LIST_DIR}/CMake/SearchOpenBLAS.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/CMake/mlpack.cmake")
 # Automatically download dependencies and only build OpenBLAS if we are
